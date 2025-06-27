@@ -6,7 +6,7 @@ use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Either;
 use EffectPHP\Core\Eff;
 use EffectPHP\Core\Option;
-use EffectPHP\Core\Runtimes\RuntimeManager;
+use EffectPHP\Core\Runtime\RuntimeManager;
 use Pest\Expectation;
 
 /*

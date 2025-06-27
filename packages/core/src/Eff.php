@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EffectPHP\Core;
 
+use EffectPHP\Core\Contracts\Clock;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Exceptions\ServiceNotFoundException;
 use EffectPHP\Core\Effects\AsyncMapEffect;
@@ -16,7 +17,7 @@ use EffectPHP\Core\Effects\SleepEffect;
 use EffectPHP\Core\Effects\SuccessEffect;
 use EffectPHP\Core\Effects\SyncEffect;
 use EffectPHP\Core\Cause\Cause;
-use EffectPHP\Core\Runtimes\RuntimeManager;
+use EffectPHP\Core\Runtime\RuntimeManager;
 use EffectPHP\Core\Utils\Duration;
 use Throwable;
 
@@ -83,6 +84,43 @@ final class Eff
     public static function service(string $serviceTag): Effect
     {
         return new ServiceAccessEffect($serviceTag);
+    }
+
+    /**
+     * Access Clock service from context
+     * 
+     * Provides access to the Clock service for time-dependent operations.
+     * In tests, this can be replaced with TestClock for time control.
+     *
+     * @return Effect<Clock, ServiceNotFoundException, Clock>
+     */
+    public static function clock(): Effect
+    {
+        return self::service(Clock::class);
+    }
+
+    /**
+     * Get current time in milliseconds using Clock service
+     * 
+     * @return Effect<Clock, ServiceNotFoundException, int>
+     */
+    public static function currentTimeMillis(): Effect
+    {
+        return self::clock()->map(fn(Clock $clock) => $clock->currentTimeMillis());
+    }
+
+    /**
+     * Execute an effect with access to Clock service
+     * 
+     * Similar to EffectTS Effect.clockWith pattern
+     * 
+     * @template A
+     * @param callable(Clock): Effect<mixed, mixed, A> $f
+     * @return Effect<Clock, ServiceNotFoundException, A>
+     */
+    public static function clockWith(callable $f): Effect
+    {
+        return self::clock()->flatMap($f);
     }
 
     /**

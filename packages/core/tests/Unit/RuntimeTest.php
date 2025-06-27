@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Exceptions\ServiceNotFoundException;
 use EffectPHP\Core\Layer\Context;
-use EffectPHP\Core\Runtimes\RuntimeManager;
+use EffectPHP\Core\Runtime\RuntimeManager;
 
 describe('Runtime', function () {
     
@@ -22,7 +24,7 @@ describe('Runtime', function () {
             $context = Context::empty()->withService('test', new stdClass());
             $runtime = RuntimeManager::createWith($context);
             
-            expect($runtime)->toBeInstanceOf(\EffectPHP\Core\Contracts\Runtime::class);
+            expect($runtime)->toBeInstanceOf(Runtime::class);
         });
     });
     
@@ -164,7 +166,7 @@ describe('Runtime', function () {
             $effect = Eff::service('NonExistentService');
             
             expect(fn() => Eff::runSync($effect))
-                ->toThrow(\EffectPHP\Core\Exceptions\ServiceNotFoundException::class);
+                ->toThrow(ServiceNotFoundException::class);
         });
     });
     

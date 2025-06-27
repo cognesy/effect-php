@@ -56,10 +56,10 @@ interface Runtime
     /**
      * Create a new runtime instance with different root context
      * 
-     * @param Context $rootContext
+     * @param Context $context
      * @return static
      */
-    public function withContext(Context $rootContext): static;
+    public function withContext(Context $context): static;
 
     /**
      * Get the runtime's name/identifier for debugging

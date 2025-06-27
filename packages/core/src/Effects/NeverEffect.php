@@ -20,7 +20,7 @@ use EffectPHP\Core\Contracts\Effect;
  * 2. CONCURRENCY SEMANTICS: In concurrent operations:
  *    - race(never, effect) -> effect completes (never loses)
  *    - parallel(never, effect) -> never completes (waits forever)
- *    - timeout(never, duration) -> timeout fires after duration
+ *    - timeoutAfter(never, duration) -> timeout fires after duration
  * 
  * 3. COMPOSITION BEHAVIOR: When chained with other effects:
  *    - never.flatMap(f) -> never (transformation never executes)
