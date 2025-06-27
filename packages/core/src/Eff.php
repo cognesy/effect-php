@@ -1,0 +1,230 @@
+<?php
+
+declare(strict_types=1);
+
+namespace EffectPHP\Core;
+
+use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Exceptions\ServiceNotFoundException;
+use EffectPHP\Core\Effects\AsyncMapEffect;
+use EffectPHP\Core\Effects\FailureEffect;
+use EffectPHP\Core\Effects\NeverEffect;
+use EffectPHP\Core\Effects\ParallelEffect;
+use EffectPHP\Core\Effects\RaceEffect;
+use EffectPHP\Core\Effects\ServiceAccessEffect;
+use EffectPHP\Core\Effects\SleepEffect;
+use EffectPHP\Core\Effects\SuccessEffect;
+use EffectPHP\Core\Effects\SyncEffect;
+use EffectPHP\Core\Cause\Cause;
+use EffectPHP\Core\Runtimes\RuntimeManager;
+use EffectPHP\Core\Utils\Duration;
+use Throwable;
+
+/**
+ * Effect factory with superior DX and natural language
+ */
+final class Eff
+{
+    /**
+     * Lift pure value into Effect with zero cost
+     *
+     * @template A
+     * @param A $value
+     * @return Effect<never, never, A>
+     */
+    public static function succeed(mixed $value): Effect
+    {
+        return new SuccessEffect($value);
+    }
+
+    /**
+     * Create failed Effect with structured cause
+     *
+     * @template E of Throwable
+     * @param Throwable $error
+     * @return Effect<never, E, never>
+     */
+    public static function fail(Throwable $error): Effect
+    {
+        return new FailureEffect(Cause::fail($error));
+    }
+
+    /**
+     * Lift synchronous computation with error handling
+     *
+     * @template A
+     * @param callable(): A $computation
+     * @return Effect<never, Throwable, A>
+     */
+    public static function sync(callable $computation): Effect
+    {
+        return new SyncEffect($computation);
+    }
+
+    /**
+     * Lift async computation with proper fiber foundation
+     *
+     * @template A
+     * @param callable(): A $computation
+     * @return Effect<never, Throwable, A>
+     */
+    public static function async(callable $computation): Effect
+    {
+        return new AsyncMapEffect(new SuccessEffect(null), $computation);
+    }
+
+    /**
+     * Access service from context
+     *
+     * @template T
+     * @param class-string<T> $serviceTag
+     * @return Effect<T, ServiceNotFoundException, T>
+     */
+    public static function service(string $serviceTag): Effect
+    {
+        return new ServiceAccessEffect($serviceTag);
+    }
+
+    /**
+     * Execute effects in parallel with type safety
+     *
+     * @template A
+     * @param Effect $effects
+     * @return Effect<mixed, mixed, A[]>
+     */
+    public static function allInParallel(array $effects): Effect
+    {
+        return new ParallelEffect($effects);
+    }
+
+    /**
+     * Race multiple effects
+     *
+     * @template A
+     * @param Effect $effects
+     * @return Effect<mixed, mixed, A>
+     */
+    public static function raceAll(array $effects): Effect
+    {
+        return new RaceEffect($effects);
+    }
+
+    /**
+     * Sleep for specified duration
+     *
+     * @param Duration $duration
+     * @return Effect<never, never, null>
+     */
+    public static function sleepFor(Duration $duration): Effect
+    {
+        return new SleepEffect($duration);
+    }
+
+    /**
+     * Effect that never completes
+     *
+     * @return Effect<never, never, never>
+     */
+    public static function never(): Effect
+    {
+        return NeverEffect::instance();
+    }
+
+    /**
+     * Conditional effect execution
+     *
+     * @template A
+     * @param bool $condition
+     * @param Effect<mixed, mixed, A> $effect
+     * @return Effect<mixed, never, A|null>
+     */
+    public static function when(bool $condition, Effect $effect): Effect
+    {
+        return $condition ? $effect : self::succeed(null);
+    }
+
+    /**
+     * Convert Option to Effect
+     *
+     * @template A
+     * @param Option<A> $option
+     * @param Throwable $whenEmpty
+     * @return Effect<never, Throwable, A>
+     */
+    public static function fromOption(Option $option, Throwable $whenEmpty): Effect
+    {
+        return $option->toEffect($whenEmpty);
+    }
+
+    /**
+     * Convert Either to Effect
+     *
+     * @template L
+     * @template R
+     * @param Either<L, R> $either
+     * @return Effect<never, L, R>
+     */
+    public static function fromEither(Either $either): Effect
+    {
+        return $either->toEffect();
+    }
+
+    /**
+     * Create scoped effect with automatic resource cleanup
+     *
+     * @template A
+     * @param callable(Scope): Effect<mixed, mixed, A> $scoped
+     * @return Effect<mixed, mixed, A>
+     */
+    public static function scoped(callable $scoped): Effect
+    {
+        return Scope::make($scoped);
+    }
+
+    // ===== EXECUTION METHODS (EffectTS-style API) =====
+
+    /**
+     * Execute effect synchronously using default runtime
+     * 
+     * Equivalent to EffectTS Effect.runSync()
+     * Throws on failure - use runSafely() for error handling
+     *
+     * @template A
+     * @param Effect<never, mixed, A> $effect
+     * @return A
+     * @throws \Throwable
+     */
+    public static function runSync(Effect $effect): mixed
+    {
+        return RuntimeManager::default()->unsafeRun($effect);
+    }
+
+    /**
+     * Execute effect safely using default runtime
+     * 
+     * Equivalent to EffectTS Effect.runPromise() but returns Either
+     * Returns Either<Error, Success> for safe error handling
+     *
+     * @template A
+     * @template E
+     * @param Effect<never, E, A> $effect
+     * @return Either<E, A>
+     */
+    public static function runSafely(Effect $effect): Either
+    {
+        return RuntimeManager::default()->runSafely($effect);
+    }
+
+    /**
+     * Execute effect synchronously (alias for runSync)
+     * 
+     * @template A
+     * @param Effect<never, mixed, A> $effect
+     * @return A
+     * @throws \Throwable
+     */
+    public static function run(Effect $effect): mixed
+    {
+        return self::runSync($effect);
+    }
+}
