@@ -5,6 +5,7 @@ declare(strict_types=1);
 use EffectPHP\Core\Eff;
 use EffectPHP\Core\Either;
 use EffectPHP\Core\Option;
+use EffectPHP\Core\Utils\Duration;
 
 describe('Effect', function () {
     
@@ -188,6 +189,169 @@ describe('Effect', function () {
             $combined = Eff::allInParallel($effects);
             
             expect($combined)->toFailWith(\RuntimeException::class);
+        });
+    });
+    
+    describe('raceAll', function () {
+        it('returns first successful effect', function () {
+            $effects = [
+                Eff::succeed('first'),
+                Eff::succeed('second'),
+                Eff::succeed('third')
+            ];
+            
+            $raced = Eff::raceAll($effects);
+            
+            expect($raced)->toProduceValue('first');
+        });
+        
+        it('handles single effect', function () {
+            $effects = [Eff::succeed('only')];
+            
+            $raced = Eff::raceAll($effects);
+            
+            expect($raced)->toProduceValue('only');
+        });
+    });
+    
+    describe('sleepFor', function () {
+        it('creates sleep effect', function () {
+            $duration = Duration::milliseconds(10);
+            $effect = Eff::sleepFor($duration);
+            
+            expect($effect)->toBeEffect();
+            expect($effect)->toProduceValue(null);
+        });
+    });
+    
+    describe('never', function () {
+        it('creates effect that never completes', function () {
+            $effect = Eff::never();
+            
+            expect($effect)->toBeEffect();
+        });
+    });
+    
+    describe('service', function () {
+        it('creates service access effect', function () {
+            $effect = Eff::service('TestService');
+            
+            expect($effect)->toBeEffect();
+        });
+    });
+    
+    describe('clock', function () {
+        it('creates clock service access effect', function () {
+            $effect = Eff::clock();
+            
+            expect($effect)->toBeEffect();
+        });
+    });
+    
+    describe('currentTimeMillis', function () {
+        it('creates current time effect', function () {
+            $effect = Eff::currentTimeMillis();
+            
+            expect($effect)->toBeEffect();
+        });
+    });
+    
+    describe('clockWith', function () {
+        it('executes effect with clock access', function () {
+            $effect = Eff::clockWith(fn($clock) => Eff::succeed('clock result'));
+            
+            expect($effect)->toBeEffect();
+        });
+    });
+    
+    describe('effect chaining and combinators', function () {
+        describe('orElse (via method)', function () {
+            it('returns primary when successful', function () {
+                $primary = Eff::succeed('primary');
+                $fallback = Eff::succeed('fallback');
+                
+                $result = $primary->orElse($fallback);
+                
+                expect($result)->toProduceValue('primary');
+            });
+            
+            it('returns fallback when primary fails', function () {
+                $primary = Eff::fail(new \RuntimeException('Failed'));
+                $fallback = Eff::succeed('fallback');
+                
+                $result = $primary->orElse($fallback);
+                
+                expect($result)->toProduceValue('fallback');
+            });
+        });
+        
+        describe('catchError (via method)', function () {
+            it('catches errors and recovers', function () {
+                $effect = Eff::fail(new \RuntimeException('Error'))
+                    ->catchError(\RuntimeException::class, fn($error) => Eff::succeed('recovered'));
+                
+                expect($effect)->toProduceValue('recovered');
+            });
+            
+            it('preserves successful values', function () {
+                $effect = Eff::succeed('success')
+                    ->catchError(\RuntimeException::class, fn($error) => Eff::succeed('recovered'));
+                
+                expect($effect)->toProduceValue('success');
+            });
+        });
+        
+        describe('timeoutAfter (via method)', function () {
+            it('completes effect within timeout', function () {
+                $duration = Duration::milliseconds(100);
+                $effect = Eff::succeed('completed')->timeoutAfter($duration);
+                
+                expect($effect)->toProduceValue('completed');
+            });
+        });
+        
+        describe('retryWith (via method)', function () {
+            it('creates retry effect structure', function () {
+                $schedule = \EffectPHP\Core\Schedule\Schedule::once();
+                $effect = Eff::succeed('test')->retryWith($schedule);
+                
+                expect($effect)->toBeEffect();
+            });
+            
+            it('creates retry wrapper around effect', function () {
+                $schedule = \EffectPHP\Core\Schedule\Schedule::once();
+                $original = Eff::succeed('success');
+                $retryEffect = $original->retryWith($schedule);
+                
+                expect($retryEffect)->toBeEffect();
+                expect($retryEffect)->not->toBe($original);
+            });
+        });
+        
+        describe('ensuring (via method)', function () {
+            it('runs cleanup after success', function () {
+                $cleanupRan = false;
+                
+                $effect = Eff::succeed('result')
+                    ->ensuring(function() use (&$cleanupRan) {
+                        $cleanupRan = true;
+                    });
+                
+                expect($effect)->toProduceValue('result');
+                expect($cleanupRan)->toBeTrue();
+            });
+            
+            it('runs cleanup after failure', function () {
+                $cleanupRan = false;
+                
+                $effect = Eff::fail(new \RuntimeException('Error'))
+                    ->ensuring(function() use (&$cleanupRan) {
+                        $cleanupRan = true;
+                    });
+                
+                expect($effect)->toFailWith(\RuntimeException::class);
+                expect($cleanupRan)->toBeTrue();
+            });
         });
     });
     
