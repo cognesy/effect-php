@@ -28,7 +28,7 @@ abstract class EffectBase implements Effect
         return new MapEffect($this, $mapper);
     }
 
-    public function mapAsync(callable $mapper): Effect
+    public function mapAsync(callable $mapper): AsyncMapEffect
     {
         return new AsyncMapEffect($this, $mapper);
     }
@@ -55,42 +55,45 @@ abstract class EffectBase implements Effect
         );
     }
 
-    public function ensuring(callable $cleanup): Effect
+    public function ensuring(callable $cleanup): EnsuringEffect
     {
         return new EnsuringEffect($this, $cleanup);
     }
 
-    public function timeoutAfter(Duration $timeout): Effect
+    public function timeoutAfter(Duration $timeout): TimeoutEffect
     {
         return new TimeoutEffect($this, $timeout);
     }
 
-    public function retryWith(Schedule $schedule): Effect
+    public function retryWith(Schedule $schedule): RetryEffect
     {
         return new RetryEffect($this, $schedule);
     }
 
-    public function providedWith(Context $context): Effect
+    public function providedWith(Context $context): ProvideContextEffect
     {
         return new ProvideContextEffect($this, $context);
     }
 
+    /**
+     * @psalm-return Effect<RLayer&R2, ELayer|\Throwable, mixed>
+     */
     public function providedByLayer(Layer $layer): Effect
     {
         return $layer->build()->flatMap(fn($ctx) => $this->providedWith($ctx));
     }
 
-    public function withinScope(callable $scoped): Effect
+    public function withinScope(callable $scoped): ScopeEffect
     {
         return new ScopeEffect($scoped);
     }
 
-    public function zipWithPar(Effect ...$others): Effect
+    public function zipWithPar(Effect ...$others): ParallelEffect
     {
         return new ParallelEffect([$this, ...$others]);
     }
 
-    public function raceWith(Effect ...$competitors): Effect
+    public function raceWith(Effect ...$competitors): RaceEffect
     {
         return new RaceEffect([$this, ...$competitors]);
     }

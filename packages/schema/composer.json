@@ -1,0 +1,45 @@
+{
+    "name": "effect-php/schema",
+    "description": "Schema codec and validation for EffectPHP",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["effect", "monad", "functional", "async", "error-handling", "validation", "schema"],
+    "authors": [
+        {
+            "name": "Dariusz Debowczyk",
+            "email": "ddebowczyk@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "pestphp/pest": "^2.0",
+        "vimeo/psalm": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "EffectPHP\\Schema\\": "src/",
+            "EffectPHP\\Core\\": "../core/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EffectPHP\\Schema\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "pest",
+        "test-unit": "pest tests/Unit",
+        "test-integration": "pest tests/Integration"
+    }
+}
