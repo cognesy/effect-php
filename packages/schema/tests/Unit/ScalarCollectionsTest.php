@@ -11,7 +11,7 @@ describe('String Collections', function () {
         
         $result = Run::syncResult($schema->decode(['hello', 'world', 'test']));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['hello', 'world', 'test']);
+        expect($result->getValueOrNull())->toBe(['hello', 'world', 'test']);
     });
 
     test('string collection with refinements', function () {
@@ -49,7 +49,7 @@ describe('Number Collections', function () {
         
         $result = Run::syncResult($schema->decode([1, 2.5, 42, 3.14159]));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([1, 2.5, 42, 3.14159]);
+        expect($result->getValueOrNull())->toBe([1, 2.5, 42, 3.14159]);
     });
 
     test('number collection with range constraints', function () {
@@ -89,7 +89,7 @@ describe('Boolean Collections', function () {
         
         $result = Run::syncResult($schema->decode([true, false, true, false]));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([true, false, true, false]);
+        expect($result->getValueOrNull())->toBe([true, false, true, false]);
     });
 
     test('boolean collection with constraints', function () {
@@ -168,7 +168,7 @@ describe('Complex Scalar Combinations', function () {
         // Test encoding
         $result = Run::syncResult($schema->encode([10, 20, 30]));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([10, 20, 30]);
+        expect($result->getValueOrNull())->toBe([10, 20, 30]);
     });
 
     test('nested scalar collections', function () {
@@ -185,7 +185,7 @@ describe('Complex Scalar Combinations', function () {
         
         $result = Run::syncResult($schema->decode($matrix));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($matrix);
+        expect($result->getValueOrNull())->toBe($matrix);
         
         // Invalid - inner array wrong length
         $result = Run::syncResult($schema->decode([['a', 'b'], ['c']]));

@@ -210,7 +210,7 @@ describe('PHP Class Reflection Integration', function () {
         
         expect($result->isSuccess())->toBeTrue();
         
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBe($testData);
         
         // Test encoding back

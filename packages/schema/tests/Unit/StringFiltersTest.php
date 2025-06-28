@@ -174,12 +174,12 @@ describe('String Filter Methods', function () {
             $decoder = Schema::decodeUnknownResult($schema);
             
             $validResult = $decoder("hello world");
-            expect($validResult->isRight())->toBeTrue();
+            expect($validResult->isSuccess())->toBeTrue();
             $value = $validResult->fold(fn($e) => null, fn($v) => $v);
             expect($value)->toBe("hello world");
             
             $invalidResult = $decoder("goodbye world");
-            expect($invalidResult->isLeft())->toBeTrue();
+            expect($invalidResult->isFailure())->toBeTrue();
         });
 
         it('works with encodeEither', function () {
@@ -187,10 +187,10 @@ describe('String Filter Methods', function () {
             $encoder = Schema::encodeResult($schema);
             
             $validResult = $encoder("no spaces");
-            expect($validResult->isRight())->toBeTrue();
+            expect($validResult->isSuccess())->toBeTrue();
             
             $invalidResult = $encoder(" has spaces ");
-            expect($invalidResult->isLeft())->toBeTrue();
+            expect($invalidResult->isFailure())->toBeTrue();
         });
     });
 

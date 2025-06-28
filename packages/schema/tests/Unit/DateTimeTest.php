@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 
 describe('Date Schema', function () {
@@ -11,7 +12,7 @@ describe('Date Schema', function () {
         $result = Run::syncResult($schema->decode('2023-12-25'));
         
         expect($result->isSuccess())->toBeTrue();
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBeInstanceOf(DateTime::class);
         expect($decoded->format('Y-m-d'))->toBe('2023-12-25');
     });
@@ -43,7 +44,7 @@ describe('Date Schema', function () {
         $result = Run::syncResult($schema->encode($date));
         
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe('2023-12-25');
+        expect($result->getValueOrNull())->toBe('2023-12-25');
     });
 
     test('fails encoding non-DateTime input', function () {
@@ -60,7 +61,7 @@ describe('DateTime Schema', function () {
         $result = Run::syncResult($schema->decode('2023-12-25T15:30:00+00:00'));
         
         expect($result->isSuccess())->toBeTrue();
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBeInstanceOf(DateTime::class);
     });
 
@@ -69,7 +70,7 @@ describe('DateTime Schema', function () {
         $result = Run::syncResult($schema->decode('2023-12-25 15:30:00'));
         
         expect($result->isSuccess())->toBeTrue();
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBeInstanceOf(DateTime::class);
         expect($decoded->format('Y-m-d H:i:s'))->toBe('2023-12-25 15:30:00');
     });
@@ -79,7 +80,7 @@ describe('DateTime Schema', function () {
         $result = Run::syncResult($schema->decode('2023-12-25T15:30:00'));
         
         expect($result->isSuccess())->toBeTrue();
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBeInstanceOf(DateTime::class);
     });
 
@@ -88,7 +89,7 @@ describe('DateTime Schema', function () {
         $result = Run::syncResult($schema->decode('2023-12-25T15:30:00Z'));
         
         expect($result->isSuccess())->toBeTrue();
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBeInstanceOf(DateTime::class);
     });
 
@@ -112,7 +113,7 @@ describe('DateTime Schema', function () {
         $result = Run::syncResult($schema->encode($date));
         
         expect($result->isSuccess())->toBeTrue();
-        $encoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $encoded = $result->getValueOrNull();
         expect($encoded)->toContain('2023-12-25T15:30:00');
     });
 
@@ -141,7 +142,7 @@ describe('Date/DateTime Schema Composition', function () {
         $result = Run::syncResult($schema->decode($input));
         expect($result->isSuccess())->toBeTrue();
         
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded['created_date'])->toBeInstanceOf(DateTime::class);
         expect($decoded['updated_at'])->toBeInstanceOf(DateTime::class);
         expect($decoded['name'])->toBe('Test Event');
@@ -154,7 +155,7 @@ describe('Date/DateTime Schema Composition', function () {
         $result = Run::syncResult($schema->decode($input));
         expect($result->isSuccess())->toBeTrue();
         
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toHaveCount(3);
         expect($decoded[0])->toBeInstanceOf(DateTime::class);
         expect($decoded[0]->format('Y-m-d'))->toBe('2023-12-25');

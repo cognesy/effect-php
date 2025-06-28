@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 
 // Test enums
@@ -24,12 +25,12 @@ test('backed enum validation', function () {
     // Valid backed enum value
     $result = Run::syncResult($schema->decode('active'));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(Status::ACTIVE);
+    expect($result->getValueOrNull())->toBe(Status::ACTIVE);
     
     // Valid backed enum value
     $result = Run::syncResult($schema->decode('pending'));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(Status::PENDING);
+    expect($result->getValueOrNull())->toBe(Status::PENDING);
     
     // Invalid value
     $result = Run::syncResult($schema->decode('invalid'));
@@ -42,12 +43,12 @@ test('unit enum validation', function () {
     // Valid unit enum name
     $result = Run::syncResult($schema->decode('LOW'));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(Priority::LOW);
+    expect($result->getValueOrNull())->toBe(Priority::LOW);
     
     // Valid unit enum name
     $result = Run::syncResult($schema->decode('HIGH'));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(Priority::HIGH);
+    expect($result->getValueOrNull())->toBe(Priority::HIGH);
     
     // Invalid name
     $result = Run::syncResult($schema->decode('INVALID'));
@@ -60,7 +61,7 @@ test('backed enum encoding', function () {
     // Encode backed enum to value
     $result = Run::syncResult($schema->encode(Status::ACTIVE));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe('active');
+    expect($result->getValueOrNull())->toBe('active');
     
     // Invalid input
     $result = Run::syncResult($schema->encode('not an enum'));
@@ -73,7 +74,7 @@ test('unit enum encoding', function () {
     // Encode unit enum to name
     $result = Run::syncResult($schema->encode(Priority::HIGH));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe('HIGH');
+    expect($result->getValueOrNull())->toBe('HIGH');
     
     // Invalid input
     $result = Run::syncResult($schema->encode('not an enum'));
@@ -86,7 +87,7 @@ test('enum collection', function () {
     // Valid enum collection
     $result = Run::syncResult($schema->decode(['active', 'pending', 'inactive']));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([Status::ACTIVE, Status::PENDING, Status::INACTIVE]);
+    expect($result->getValueOrNull())->toBe([Status::ACTIVE, Status::PENDING, Status::INACTIVE]);
     
     // Invalid enum in collection
     $result = Run::syncResult($schema->decode(['active', 'invalid']));
@@ -99,7 +100,7 @@ test('collection of enum shorthand', function () {
     // Valid enum collection using shorthand
     $result = Run::syncResult($schema->decode(['active', 'pending']));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([Status::ACTIVE, Status::PENDING]);
+    expect($result->getValueOrNull())->toBe([Status::ACTIVE, Status::PENDING]);
 });
 
 test('enum collection with constraints', function () {

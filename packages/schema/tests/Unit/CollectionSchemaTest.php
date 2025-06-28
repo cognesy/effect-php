@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 use EffectPHP\Schema\Schema\CollectionSchema;
 
@@ -12,7 +13,7 @@ test('basic collection validation', function () {
     $result = Run::syncResult($schema->decode(['foo', 'bar', 'baz']));
     
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['foo', 'bar', 'baz']);
+    expect($result->getValueOrNull())->toBe(['foo', 'bar', 'baz']);
 });
 
 test('collection with invalid input type', function () {
@@ -154,7 +155,7 @@ test('encoding', function () {
     // Valid encoding
     $result = Run::syncResult($schema->encode(['foo', 'bar']));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['foo', 'bar']);
+    expect($result->getValueOrNull())->toBe(['foo', 'bar']);
     
     // Invalid encoding - wrong type
     $result = Run::syncResult($schema->encode('not an array'));

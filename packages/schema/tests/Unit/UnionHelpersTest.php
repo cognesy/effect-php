@@ -86,17 +86,17 @@ describe('Union Helper Methods', function () {
             $decoder = Schema::decodeUnknownResult($schema);
             
             $validResult = $decoder(null);
-            expect($validResult->isRight())->toBeTrue();
+            expect($validResult->isSuccess())->toBeTrue();
             $value = $validResult->fold(fn($e) => "error", fn($v) => $v);
             expect($value)->toBeNull();
             
             $validResult2 = $decoder("hello");
-            expect($validResult2->isRight())->toBeTrue();
+            expect($validResult2->isSuccess())->toBeTrue();
             $value2 = $validResult2->fold(fn($e) => "error", fn($v) => $v);
             expect($value2)->toBe("hello");
             
             $invalidResult = $decoder(123);
-            expect($invalidResult->isLeft())->toBeTrue();
+            expect($invalidResult->isFailure())->toBeTrue();
         });
 
         it('works with encodeEither', function () {
@@ -104,10 +104,10 @@ describe('Union Helper Methods', function () {
             $encoder = Schema::encodeResult($schema);
             
             $nullResult = $encoder(null);
-            expect($nullResult->isRight())->toBeTrue();
+            expect($nullResult->isSuccess())->toBeTrue();
             
             $stringResult = $encoder("test");
-            expect($stringResult->isRight())->toBeTrue();
+            expect($stringResult->isSuccess())->toBeTrue();
         });
     });
 

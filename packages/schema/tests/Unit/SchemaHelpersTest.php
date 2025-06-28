@@ -35,8 +35,8 @@ it('returns Right for valid input with decodeUnknownEither', function () {
     $decoder = Schema::decodeUnknownResult($stringSchema);
     $result = $decoder($validString);
     
-    expect($result->isRight())->toBeTrue();
-    $value = $result->fold(fn($e) => null, fn($v) => $v);
+    expect($result->isSuccess())->toBeTrue();
+    $value = $result->getValueOrNull();
     expect($value)->toBe($validString);
 });
 
@@ -47,7 +47,7 @@ it('returns Left for invalid input with decodeUnknownEither', function () {
     $decoder = Schema::decodeUnknownResult($stringSchema);
     $result = $decoder($invalidInput);
     
-    expect($result->isLeft())->toBeTrue();
+    expect($result->isFailure())->toBeTrue();
 });
 
 it('encodes valid value synchronously with encodeSync', function () {
@@ -67,8 +67,8 @@ it('returns Right for valid encoding with encodeEither', function () {
     $encoder = Schema::encodeResult($stringSchema);
     $result = $encoder($validString);
     
-    expect($result->isRight())->toBeTrue();
-    $value = $result->fold(fn($e) => null, fn($v) => $v);
+    expect($result->isSuccess())->toBeTrue();
+    $value = $result->getValueOrNull();
     expect($value)->toBe($validString);
 });
 
@@ -118,8 +118,8 @@ it('works with record schemas', function () {
     $decoder = Schema::decodeUnknownResult($recordSchema);
     $result = $decoder($testData);
     
-    expect($result->isRight())->toBeTrue();
-    $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+    expect($result->isSuccess())->toBeTrue();
+    $decoded = $result->getValueOrNull();
     expect($decoded)->toBe($testData);
 });
 
@@ -129,11 +129,11 @@ it('works with union schemas', function () {
     $decoder = Schema::decodeUnknownResult($unionSchema);
     
     $stringResult = $decoder("hello");
-    expect($stringResult->isRight())->toBeTrue();
+    expect($stringResult->isSuccess())->toBeTrue();
     
     $numberResult = $decoder(42);
-    expect($numberResult->isRight())->toBeTrue();
+    expect($numberResult->isSuccess())->toBeTrue();
     
     $invalidResult = $decoder(true);
-    expect($invalidResult->isLeft())->toBeTrue();
+    expect($invalidResult->isFailure())->toBeTrue();
 });

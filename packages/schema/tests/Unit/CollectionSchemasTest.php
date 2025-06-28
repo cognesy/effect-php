@@ -138,8 +138,8 @@ describe('Collection Schema Types', function () {
             
             $result = $decoder(["hello", 42]);
             
-            expect($result->isRight())->toBeTrue();
-            $value = $result->fold(fn($e) => null, fn($v) => $v);
+            expect($result->isSuccess())->toBeTrue();
+            $value = $result->getValueOrNull();
             expect($value)->toBe(["hello", 42]);
         });
 
@@ -149,8 +149,8 @@ describe('Collection Schema Types', function () {
             
             $result = $decoder(["a", "b", "c"]);
             
-            expect($result->isRight())->toBeTrue();
-            $value = $result->fold(fn($e) => null, fn($v) => $v);
+            expect($result->isSuccess())->toBeTrue();
+            $value = $result->getValueOrNull();
             expect($value)->toBe(["a", "b", "c"]);
         });
 

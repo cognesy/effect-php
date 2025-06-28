@@ -316,7 +316,7 @@ describe('End-to-End Schema Workflow Integration', function () {
 
         expect($result->isSuccess())->toBeTrue();
 
-        $validated = $result->fold(fn($e) => null, fn($v) => $v);
+        $validated = $result->getValueOrNull();
         expect($validated['info']['name'])->toBe('TechCorp Inc.');
         expect($validated['departments'])->toHaveCount(2);
         expect($validated['departments'][0]['employees'])->toHaveCount(2);
@@ -377,7 +377,7 @@ describe('End-to-End Schema Workflow Integration', function () {
         $result = Run::syncResult($complexSchema->decode($invalidData));
         expect($result->isFailure())->toBeTrue();
 
-        $error = $result->fold(fn($e) => $e, fn($v) => null);
+        $error = $result->getErrorOrNull();
         expect($error)->toBeInstanceOf(\EffectPHP\Schema\Parse\ParseError::class);
 
         // Verify we collected multiple validation errors

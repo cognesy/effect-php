@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 
 // Test enums for mixed scenarios
@@ -25,7 +26,7 @@ describe('Any and Mixed Collections', function () {
         $mixedData = ['string', 42, true, null, ['nested', 'array']];
         $result = Run::syncResult($schema->decode($mixedData));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($mixedData);
+        expect($result->getValueOrNull())->toBe($mixedData);
     });
 
     test('mixed type collection', function () {
@@ -95,7 +96,7 @@ describe('Union Collections', function () {
         $result = Run::syncResult($schema->decode(['red', 'custom', 'blue']));
         expect($result->isSuccess())->toBeTrue();
         
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded[0])->toBe(Color::RED);
         expect($decoded[1])->toBe('custom');
         expect($decoded[2])->toBe(Color::BLUE);
@@ -113,7 +114,7 @@ describe('Union Collections', function () {
         $result = Run::syncResult($schema->decode([42, true, 'special', false]));
         expect($result->isSuccess())->toBeTrue();
         
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBe([42, true, 'special', false]);
     });
 });
@@ -134,7 +135,7 @@ describe('Object Collections', function () {
         
         $result = Run::syncResult($schema->decode($data));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($data);
+        expect($result->getValueOrNull())->toBe($data);
     });
 
     test('object collection with optional fields', function () {
@@ -229,12 +230,12 @@ describe('Transformation Collections', function () {
         // Decode: strings become numbers
         $result = Run::syncResult($schema->decode(['1.5', '2.7', '3.14']));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([1.5, 2.7, 3.14]);
+        expect($result->getValueOrNull())->toBe([1.5, 2.7, 3.14]);
         
         // Encode: numbers become strings
         $result = Run::syncResult($schema->encode([1.5, 2.7, 3.14]));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['1.5', '2.7', '3.14']);
+        expect($result->getValueOrNull())->toBe(['1.5', '2.7', '3.14']);
     });
 
     test('date string transformation collection', function () {
@@ -250,7 +251,7 @@ describe('Transformation Collections', function () {
         $result = Run::syncResult($schema->decode(['2023-01-01', '2023-12-31']));
         expect($result->isSuccess())->toBeTrue();
         
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded[0])->toBeInstanceOf(DateTime::class);
         expect($decoded[1])->toBeInstanceOf(DateTime::class);
     });
@@ -268,7 +269,7 @@ describe('Edge Cases and Error Handling', function () {
         foreach ($schemas as $schema) {
             $result = Run::syncResult($schema->decode([]));
             expect($result->isSuccess())->toBeTrue();
-            expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([]);
+            expect($result->getValueOrNull())->toBe([]);
         }
     });
 
@@ -292,7 +293,7 @@ describe('Edge Cases and Error Handling', function () {
         
         $result = Run::syncResult($deepSchema->decode($deepData));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($deepData);
+        expect($result->getValueOrNull())->toBe($deepData);
     });
 
     test('large collection performance', function () {
@@ -301,6 +302,6 @@ describe('Edge Cases and Error Handling', function () {
         $largeArray = range(1, 500);
         $result = Run::syncResult($schema->decode($largeArray));
         expect($result->isSuccess())->toBeTrue();
-        expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($largeArray);
+        expect($result->getValueOrNull())->toBe($largeArray);
     });
 });

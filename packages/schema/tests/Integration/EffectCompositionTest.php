@@ -228,7 +228,7 @@ describe('Effect Composition and Error Handling Integration', function () {
 
         // Test error recovery
         $errorResult = Run::syncResult($recoveringSchema('error'));
-        expect($errorResult->isRight())->toBeTrue();
+        expect($errorResult->isSuccess())->toBeTrue();
         $recovered = $errorResult->getValueOrNull();
         expect($recovered)->toBe('default-fallback-value');
 

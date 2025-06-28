@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 
 describe('String Schema', function () {
@@ -82,7 +83,7 @@ describe('Number Schema', function () {
         
         // String numbers are coerced to numbers (as floats)
         $result = Run::syncResult($schema->decode('123'));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(123.0);
         
         // Invalid - non-numeric string
@@ -95,7 +96,7 @@ describe('Number Schema', function () {
         
         // Valid range
         $result = Run::syncResult($schema->decode(50));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         // Below minimum
         $result = Run::syncResult($schema->decode(-5));
@@ -111,10 +112,10 @@ describe('Number Schema', function () {
         
         // Boundary values should be valid
         $result = Run::syncResult($schema->decode(0));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(10));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
     });
 });
 
@@ -123,11 +124,11 @@ describe('Boolean Schema', function () {
         $schema = Schema::boolean();
         
         $result = Run::syncResult($schema->decode(true));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(true);
         
         $result = Run::syncResult($schema->decode(false));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(false);
         
         // Invalid - string
@@ -145,7 +146,7 @@ describe('Literal Schema', function () {
         $schema = Schema::literal('active');
         
         $result = Run::syncResult($schema->decode('active'));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe('active');
         
         $result = Run::syncResult($schema->decode('inactive'));
@@ -156,7 +157,7 @@ describe('Literal Schema', function () {
         $schema = Schema::literal(42);
         
         $result = Run::syncResult($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(43));
         expect($result->isFailure())->toBeTrue();
@@ -166,7 +167,7 @@ describe('Literal Schema', function () {
         $schema = Schema::literal(null);
         
         $result = Run::syncResult($schema->decode(null));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(null);
         
         $result = Run::syncResult($schema->decode('null'));
@@ -177,7 +178,7 @@ describe('Literal Schema', function () {
         $schema = Schema::literal(true);
         
         $result = Run::syncResult($schema->decode(true));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(false));
         expect($result->isFailure())->toBeTrue();
@@ -193,7 +194,7 @@ describe('Refinement Schema', function () {
         );
         
         $result = Run::syncResult($evenNumberSchema->decode(4));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($evenNumberSchema->decode(3));
         expect($result->isFailure())->toBeTrue();
@@ -207,13 +208,13 @@ describe('Refinement Schema', function () {
         );
         
         $result = Run::syncResult($positiveSchema->decode(5));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($positiveSchema->decode(-1));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
         $result = Run::syncResult($positiveSchema->decode(0));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
     });
 });
 
@@ -222,7 +223,7 @@ describe('Encoding and Decoding', function () {
         $schema = Schema::string();
         
         $result = Run::syncResult($schema->encode('hello'));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe('hello');
     });
 
@@ -230,7 +231,7 @@ describe('Encoding and Decoding', function () {
         $schema = Schema::number();
         
         $result = Run::syncResult($schema->encode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(42);
     });
 
@@ -238,7 +239,7 @@ describe('Encoding and Decoding', function () {
         $emailSchema = Schema::email(Schema::string());
         
         $result = Run::syncResult($emailSchema->encode('test@example.com'));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe('test@example.com');
     });
 });

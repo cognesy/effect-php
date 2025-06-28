@@ -62,7 +62,7 @@ it('supports complete collection workflow', function () {
     $result = Run::syncResult($projectSchema->decode($projectData));
     expect($result->isSuccess())->toBeTrue();
 
-    $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+    $decoded = $result->getValueOrNull();
     expect($decoded['name'])->toBe('My Project');
     expect($decoded['tasks'])->toHaveCount(2);
     expect($decoded['tasks'][0]['status'])->toBe(TaskStatus::TODO);
@@ -124,7 +124,7 @@ it('supports nested collections with constraints', function () {
 
     $result = Run::syncResult($schema->decode($validData));
     expect($result->isSuccess())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($validData);
+    expect($result->getValueOrNull())->toBe($validData);
 
     // Invalid - inner collection too large
     $invalidData = [
@@ -154,7 +154,7 @@ it('supports mixed collection types', function () {
     // Valid enum collection
     $result = Run::syncResult($enumCollection->decode(['todo', 'done']));
     expect($result->isSuccess())->toBeTrue();
-    $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+    $decoded = $result->getValueOrNull();
     expect($decoded)->toBe([TaskStatus::TODO, TaskStatus::DONE]);
 });
 
@@ -172,7 +172,7 @@ it('encodes collections', function () {
     $result = Run::syncResult($schema->encode($data));
     expect($result->isSuccess())->toBeTrue();
 
-    $encoded = $result->fold(fn($e) => null, fn($v) => $v);
+    $encoded = $result->getValueOrNull();
     expect($encoded['statuses'])->toBe(['todo', 'done']);
     expect($encoded['priorities'])->toBe(['HIGH', 'LOW']);
 });

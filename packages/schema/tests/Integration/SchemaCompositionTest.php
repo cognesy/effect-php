@@ -311,7 +311,7 @@ describe('Schema Composition and Extension Integration', function () {
         $result = Run::syncResult($fullUserSchema->decode($userData));
         expect($result->isSuccess())->toBeTrue();
 
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBe($userData);
 
         // Test encoding

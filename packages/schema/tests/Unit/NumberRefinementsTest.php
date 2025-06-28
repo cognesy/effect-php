@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 
 describe('Integer Schema', function () {
@@ -81,7 +82,7 @@ describe('Float Schema', function () {
         
         // Integers become floats
         $result = Run::syncResult($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(42.0);
     });
 
@@ -89,7 +90,7 @@ describe('Float Schema', function () {
         $schema = Schema::float();
         
         $result = Run::syncResult($schema->decode('3.14'));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(3.14);
     });
 });
@@ -100,13 +101,13 @@ describe('Positive Integer Schema', function () {
         
         // Valid positive integers
         $result = Run::syncResult($schema->decode(1));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(100));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('rejects zero and negative integers', function () {
@@ -141,11 +142,11 @@ describe('Non-Negative Integer Schema', function () {
         
         // Zero is valid
         $result = Run::syncResult($schema->decode(0));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         // Positive integers are valid
         $result = Run::syncResult($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('rejects negative integers', function () {
@@ -165,17 +166,17 @@ describe('Positive Number Schema', function () {
         
         // Positive integers
         $result = Run::syncResult($schema->decode(1));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         // Positive floats
         $result = Run::syncResult($schema->decode(1.5));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(3.14159));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('rejects zero and negative numbers', function () {
@@ -200,14 +201,14 @@ describe('Non-Negative Number Schema', function () {
         
         // Zero is valid
         $result = Run::syncResult($schema->decode(0));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         // Positive numbers are valid
         $result = Run::syncResult($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(3.14));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('rejects negative numbers', function () {
@@ -230,7 +231,7 @@ describe('Percentage Schema', function () {
         
         foreach ($values as $value) {
             $result = Run::syncResult($schema->decode($value));
-            expect($result->isRight())->toBeTrue();
+            expect($result->isSuccess())->toBeTrue();
         }
     });
 
@@ -239,17 +240,17 @@ describe('Percentage Schema', function () {
         
         // Below range
         $result = Run::syncResult($schema->decode(-1));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(-0.1));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
         // Above range
         $result = Run::syncResult($schema->decode(101));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(100.1));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
     });
 });
 
@@ -259,16 +260,16 @@ describe('Finite Number Schema', function () {
         
         // Valid finite numbers
         $result = Run::syncResult($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(3.14159));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(-1000.5));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(0));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('rejects infinite and NaN values', function () {
@@ -276,13 +277,13 @@ describe('Finite Number Schema', function () {
         
         // Use PHP constants for infinity and NaN
         $result = Run::syncResult($schema->decode(INF)); // Infinity
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(-INF)); // -Infinity  
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
         $result = Run::syncResult($schema->decode(NAN)); // NaN
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
     });
 });
 
@@ -291,37 +292,37 @@ describe('Collection with Number Refinements', function () {
         $schema = Schema::collection(Schema::integer())->min(1);
         
         $result = Run::syncResult($schema->decode([1, 2, 3, 42]));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         // Contains non-integer
         $result = Run::syncResult($schema->decode([1, 2.5, 3]));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('positive integer collection', function () {
         $schema = Schema::collection(Schema::positiveInteger())->nonEmpty();
         
         $result = Run::syncResult($schema->decode([1, 2, 100]));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         // Contains zero
         $result = Run::syncResult($schema->decode([1, 0, 3]));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
         // Contains negative
         $result = Run::syncResult($schema->decode([1, -1, 3]));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('percentage collection', function () {
         $schema = Schema::collection(Schema::percentage())->max(10);
         
         $result = Run::syncResult($schema->decode([0, 25.5, 50, 100]));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         // Contains value outside range
         $result = Run::syncResult($schema->decode([50, 101]));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
     });
 });
 
@@ -330,7 +331,7 @@ describe('Encoding with Number Refinements', function () {
         $schema = Schema::integer();
         
         $result = Run::syncResult($schema->encode(42));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(42);
     });
 
@@ -338,11 +339,11 @@ describe('Encoding with Number Refinements', function () {
         $schema = Schema::percentage();
         
         $result = Run::syncResult($schema->encode(75.5));
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         expect($result->getValueOrNull())->toBe(75.5);
         
         // Encoding also validates
         $result = Run::syncResult($schema->encode(150));
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
     });
 });

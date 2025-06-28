@@ -42,7 +42,7 @@ describe('Basic Schema Validation Integration', function () {
         $result = Run::syncResult($userSchema->decode($validUser));
         expect($result->isSuccess())->toBeTrue();
         
-        $decoded = $result->fold(fn($e) => null, fn($v) => $v);
+        $decoded = $result->getValueOrNull();
         expect($decoded)->toBe($validUser);
     });
 
@@ -60,7 +60,7 @@ describe('Basic Schema Validation Integration', function () {
         $result = Run::syncResult($schema->decode($invalidData));
         expect($result->isFailure())->toBeTrue();
         
-        $error = $result->fold(fn($e) => $e, fn($v) => null);
+        $error = $result->getErrorOrNull();
         expect($error)->toBeInstanceOf(ParseError::class);
         expect($error->getFormattedMessage())->toContain('minLength');
     });
