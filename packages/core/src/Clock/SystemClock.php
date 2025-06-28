@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Core\Runtime\Clock;
+namespace EffectPHP\Core\Clock;
 
 use EffectPHP\Core\Contracts\Clock;
 use EffectPHP\Core\Utils\Duration;

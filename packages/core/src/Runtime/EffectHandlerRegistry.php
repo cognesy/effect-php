@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EffectPHP\Core\Runtime;
 
 use EffectPHP\Core\Contracts\Effect;
-use EffectPHP\Core\Runtime\Handlers\AsyncMapEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\AsyncPromiseEffectHandler;
 use EffectPHP\Core\Runtime\Handlers\CatchEffectHandler;
 use EffectPHP\Core\Runtime\Handlers\EnsuringEffectHandler;
 use EffectPHP\Core\Runtime\Handlers\FailureEffectHandler;
@@ -24,6 +24,7 @@ use EffectPHP\Core\Runtime\Handlers\SuccessEffectHandler;
 use EffectPHP\Core\Runtime\Handlers\SuspendEffectHandler;
 use EffectPHP\Core\Runtime\Handlers\SyncEffectHandler;
 use EffectPHP\Core\Runtime\Handlers\TimeoutEffectHandler;
+use EffectPHP\Core\Contracts\PromiseAdapter;
 use LogicException;
 
 /**
@@ -34,9 +35,9 @@ final class EffectHandlerRegistry
     /** @var EffectHandler[] */
     private array $handlers = [];
 
-    public function __construct()
+    public function __construct(?PromiseAdapter $promiseAdapter = null)
     {
-        $this->registerDefaultHandlers();
+        $this->registerDefaultHandlers($promiseAdapter);
     }
 
     public function register(EffectHandler $handler): void

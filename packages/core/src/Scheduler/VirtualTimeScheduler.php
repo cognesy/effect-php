@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Core\Runtime\Scheduler;
+namespace EffectPHP\Core\Scheduler;
 
 use EffectPHP\Core\Utils\Duration;
 

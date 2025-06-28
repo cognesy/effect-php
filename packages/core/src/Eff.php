@@ -6,8 +6,10 @@ namespace EffectPHP\Core;
 
 use EffectPHP\Core\Contracts\Clock;
 use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Contracts\FiberHandle;
+use EffectPHP\Core\Contracts\Promise;
 use EffectPHP\Core\Exceptions\ServiceNotFoundException;
-use EffectPHP\Core\Effects\AsyncMapEffect;
+use EffectPHP\Core\Effects\AsyncPromiseEffect;
 use EffectPHP\Core\Effects\FailureEffect;
 use EffectPHP\Core\Effects\NeverEffect;
 use EffectPHP\Core\Effects\ParallelEffect;
@@ -16,9 +18,11 @@ use EffectPHP\Core\Effects\ServiceAccessEffect;
 use EffectPHP\Core\Effects\SleepEffect;
 use EffectPHP\Core\Effects\SuccessEffect;
 use EffectPHP\Core\Effects\SyncEffect;
+use EffectPHP\Core\Effects\SuspendEffect;
 use EffectPHP\Core\Cause\Cause;
 use EffectPHP\Core\Runtime\RuntimeManager;
 use EffectPHP\Core\Utils\Duration;
+use EffectPHP\Core\Exceptions\UnknownException;
 use Throwable;
 
 /**
@@ -65,15 +69,97 @@ final class Eff
     }
 
     /**
-     * Lift async computation with proper fiber foundation
+     * Create effect from computation that might throw
      *
      * @template A
-     *
      * @param callable(): A $computation
+     * @return Effect<never, UnknownException, A>
      */
-    public static function async(callable $computation): AsyncMapEffect
+    public static function try(callable $computation): Effect
     {
-        return new AsyncMapEffect(new SuccessEffect(null), $computation);
+        return new SyncEffect(function() use ($computation) {
+            try {
+                return $computation();
+            } catch (Throwable $e) {
+                throw new UnknownException($e->getMessage(), 0, $e);
+            }
+        });
+    }
+
+    /**
+     * Create effect from computation that might throw with custom error handler
+     *
+     * @template A
+     * @template E of Throwable
+     * @param callable(): A $computation
+     * @param callable(Throwable): E $catch
+     * @return Effect<never, E, A>
+     */
+    public static function tryWithCatch(callable $computation, callable $catch): Effect
+    {
+        return new SyncEffect(function() use ($computation, $catch) {
+            try {
+                return $computation();
+            } catch (Throwable $e) {
+                throw $catch($e);
+            }
+        });
+    }
+
+    /**
+     * Create suspended effect for lazy evaluation
+     *
+     * @template R
+     * @template E of Throwable
+     * @template A
+     * @param callable(): Effect<R, E, A> $computation
+     * @return Effect<R, E, A>
+     */
+    public static function suspend(callable $computation): Effect
+    {
+        return new SuspendEffect(new SuccessEffect(null), $computation);
+    }
+
+
+    /**
+     * Create effect from async computation that cannot fail
+     *
+     * @template A
+     * @param callable(): Promise<A> $computation
+     * @return Effect<never, never, A>
+     */
+    public static function promise(callable $computation): Effect
+    {
+        return new AsyncPromiseEffect($computation);
+    }
+
+    /**
+     * Create effect from async computation that might fail
+     *
+     * @template A
+     * @param callable(): Promise<A> $computation
+     * @return Effect<never, UnknownException, A>
+     */
+    public static function tryPromise(callable $computation): Effect
+    {
+        return new AsyncPromiseEffect(
+            $computation,
+            fn(Throwable $e) => new UnknownException($e->getMessage(), 0, $e)
+        );
+    }
+
+    /**
+     * Create effect from async computation that might fail with custom error handler
+     *
+     * @template A
+     * @template E of Throwable
+     * @param callable(): Promise<A> $computation
+     * @param callable(Throwable): E $catch
+     * @return Effect<never, E, A>
+     */
+    public static function tryPromiseWith(callable $computation, callable $catch): Effect
+    {
+        return new AsyncPromiseEffect($computation, $catch);
     }
 
     /**
@@ -235,13 +321,83 @@ final class Eff
      */
     public static function runSync(Effect $effect): mixed
     {
-        return RuntimeManager::default()->unsafeRun($effect);
+        return RuntimeManager::default()->runSync($effect);
+    }
+
+    /**
+     * Execute effect and return Promise
+     * 
+     * Equivalent to EffectTS Effect.runPromise()
+     *
+     * @template A
+     * @param Effect<never, mixed, A> $effect
+     * @return Promise<A>
+     */
+    public static function runPromise(Effect $effect): Promise
+    {
+        return RuntimeManager::default()->runPromise($effect);
+    }
+
+    /**
+     * Execute effect with callback
+     * 
+     * Equivalent to EffectTS Effect.runCallback()
+     *
+     * @template A
+     * @param Effect<never, mixed, A> $effect
+     * @param callable(mixed|\Throwable, A|null): void $callback
+     * @return void
+     */
+    public static function runCallback(Effect $effect, callable $callback): void
+    {
+        RuntimeManager::default()->runCallback($effect, $callback);
+    }
+
+    /**
+     * Fork effect and return handle for concurrent management
+     * 
+     * Equivalent to EffectTS Effect.runFork()
+     *
+     * @template A
+     * @param Effect<never, mixed, A> $effect
+     * @return FiberHandle<A>
+     */
+    public static function runFork(Effect $effect): FiberHandle
+    {
+        return RuntimeManager::default()->runFork($effect);
+    }
+
+    /**
+     * Execute effect synchronously and return Result
+     * 
+     * Equivalent to EffectTS Effect.runSyncResult()
+     *
+     * @template A
+     * @param Effect<never, mixed, A> $effect
+     * @return Result<A>
+     */
+    public static function runSyncResult(Effect $effect): Result
+    {
+        return RuntimeManager::default()->runSyncResult($effect);
+    }
+
+    /**
+     * Execute effect and return Promise that resolves to Result
+     * 
+     * Equivalent to EffectTS Effect.runPromiseResult()
+     *
+     * @template A
+     * @param Effect<never, mixed, A> $effect
+     * @return Promise<Result<A>>
+     */
+    public static function runPromiseResult(Effect $effect): Promise
+    {
+        return RuntimeManager::default()->runPromiseResult($effect);
     }
 
     /**
      * Execute effect safely using default runtime
      * 
-     * Equivalent to EffectTS Effect.runPromise() but returns Either
      * Returns Either<Error, Success> for safe error handling
      *
      * @template A

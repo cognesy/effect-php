@@ -44,14 +44,6 @@ interface Effect
      */
     public function flatMap(callable $chain): Effect;
 
-    /**
-     * Transform effects asynchronously for maximum performance
-     *
-     * @template B
-     * @param callable(A): B $mapper
-     * @return Effect<R, E, B>
-     */
-    public function mapAsync(callable $mapper): Effect;
 
     /**
      * Handle typed errors with recovery

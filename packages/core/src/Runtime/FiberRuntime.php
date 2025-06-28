@@ -4,22 +4,45 @@ declare(strict_types=1);
 
 namespace EffectPHP\Core\Runtime;
 
-use EffectPHP\Core\Contracts\Effect;
-use EffectPHP\Core\Contracts\Runtime;
+use EffectPHP\Core\Cause\Cause;
+use EffectPHP\Core\Clock\SystemClock;
 use EffectPHP\Core\Contracts\Clock;
+use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Contracts\FiberHandle;
+use EffectPHP\Core\Contracts\Promise;
+use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Effects\CatchEffect;
-use EffectPHP\Core\Layer\Context;
-use EffectPHP\Core\Runtime\Clock\SystemClock;
-use EffectPHP\Core\Runtime\Fiber\FiberScheduler;
-use EffectPHP\Core\Runtime\Fiber\FiberSleepEffectHandler;
-use EffectPHP\Core\Runtime\Fiber\FiberTimeoutEffectHandler;
-use EffectPHP\Core\Runtime\EffectHandlerRegistry;
+use EffectPHP\Core\Effects\FailureEffect;
 use EffectPHP\Core\Effects\ProvideContextEffect;
 use EffectPHP\Core\Effects\SuccessEffect;
-use EffectPHP\Core\Effects\FailureEffect;
 use EffectPHP\Core\Either;
-use EffectPHP\Core\Cause\Cause;
+use EffectPHP\Core\Result;
+use EffectPHP\Core\Layer\Context;
+use EffectPHP\Core\Promise\Adapters\SyncPromiseAdapter;
+use EffectPHP\Core\Fiber\FiberScheduler;
+use EffectPHP\Core\Fiber\FiberSleepEffectHandler;
+use EffectPHP\Core\Fiber\FiberTimeoutEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\AsyncPromiseEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\CatchEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\EnsuringEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\FailureEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\FlatMapEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\MapEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\NeverEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\OrElseEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\ParallelEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\ProvideContextEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\RaceEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\RetryEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\ScopeEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\ServiceAccessEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\SleepEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\SuccessEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\SuspendEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\SyncEffectHandler;
+use EffectPHP\Core\Runtime\Handlers\TimeoutEffectHandler;
 use Fiber;
+use LogicException;
 
 /**
  * Fiber-based runtime for proper async execution and virtual time support
@@ -33,14 +56,15 @@ use Fiber;
 final class FiberRuntime implements Runtime
 {
     private FiberScheduler $scheduler;
-    private EffectHandlerRegistry $handlerRegistry;
+    /** @var EffectHandler[] */
+    private array $handlers;
     private Context $rootContext;
 
     public function __construct(?Context $rootContext = null)
     {
         $this->scheduler = new FiberScheduler();
         $this->rootContext = $rootContext ?? $this->createDefaultContext();
-        $this->handlerRegistry = $this->createFiberHandlerRegistry();
+        $this->handlers = $this->createHandlers();
     }
 
     private function createDefaultContext(): Context
@@ -50,16 +74,51 @@ final class FiberRuntime implements Runtime
         return $context;
     }
 
-    private function createFiberHandlerRegistry(): EffectHandlerRegistry
+    /**
+     * Create handlers specific to FiberRuntime (fiber-based execution)
+     * 
+     * @return EffectHandler[]
+     */
+    private function createHandlers(): array
     {
-        $registry = new EffectHandlerRegistry();
-        
-        // Register fiber-aware versions of sleep and timeout handlers
-        // These will be checked first due to registration order
-        $registry->register(new FiberSleepEffectHandler());
-        $registry->register(new FiberTimeoutEffectHandler());
-        
-        return $registry;
+        return [
+            new AsyncPromiseEffectHandler(new SyncPromiseAdapter()),
+            new CatchEffectHandler(),
+            new EnsuringEffectHandler(),
+            new FailureEffectHandler(),
+            // Fiber-aware versions override default ones
+            new FiberSleepEffectHandler(),
+            new FiberTimeoutEffectHandler(),
+            new FlatMapEffectHandler(),
+            new MapEffectHandler(),
+            new NeverEffectHandler(),
+            new OrElseEffectHandler(),
+            new ParallelEffectHandler(),
+            new ProvideContextEffectHandler(),
+            new RaceEffectHandler(),
+            new RetryEffectHandler(),
+            new ScopeEffectHandler(),
+            new ServiceAccessEffectHandler(),
+            new SleepEffectHandler(),
+            new SuccessEffectHandler(),
+            new SuspendEffectHandler(),
+            new SyncEffectHandler(),
+            new TimeoutEffectHandler(),
+        ];
+    }
+
+    /**
+     * Get handler for specific effect type
+     */
+    private function getHandler(Effect $effect): EffectHandler
+    {
+        foreach ($this->handlers as $handler) {
+            if ($handler->canHandle($effect)) {
+                return $handler;
+            }
+        }
+
+        throw new LogicException('No handler found for effect type: ' . get_class($effect));
     }
 
     public function getScheduler(): FiberScheduler
@@ -117,7 +176,7 @@ final class FiberRuntime implements Runtime
             }
 
             // Get appropriate handler and delegate
-            $handler = $this->handlerRegistry->getHandler($current);
+            $handler = $this->getHandler($current);
             $result = $handler->handle($current, $stack, $context, $this);
             
             // Handle completion cases
@@ -205,5 +264,105 @@ final class FiberRuntime implements Runtime
     public function getName(): string
     {
         return 'FiberRuntime';
+    }
+
+    // ===== EffectTS-style Execution APIs =====
+
+    public function runSync(Effect $effect): mixed
+    {
+        return $this->run($effect);
+    }
+
+    public function runPromise(Effect $effect): Promise
+    {
+        // Create a promise that wraps fiber execution
+        try {
+            $result = $this->run($effect);
+            return $this->createResolvedPromise($result);
+        } catch (\Throwable $error) {
+            return $this->createRejectedPromise($error);
+        }
+    }
+
+    public function runCallback(Effect $effect, callable $callback): void
+    {
+        // Execute asynchronously with callback
+        $fiber = new \Fiber(function() use ($effect, $callback) {
+            try {
+                $result = $this->unsafeRunInternal($effect, $this->rootContext);
+                $callback(null, $result); // Node.js style: (error, result)
+            } catch (\Throwable $error) {
+                $callback($error, null);
+            }
+        });
+
+        $fiber->start();
+        
+        // Run scheduler until fiber completes
+        while (!$fiber->isTerminated()) {
+            $this->scheduler->tick();
+            
+            if ($fiber->isSuspended()) {
+                // Check if any scheduled operations should resume this fiber
+                if ($this->scheduler->shouldResumeFiber($fiber)) {
+                    $resumeValue = $this->scheduler->getResumeValue($fiber);
+                    $fiber->resume($resumeValue);
+                }
+            }
+        }
+    }
+
+    public function runFork(Effect $effect): FiberHandle
+    {
+        // Create a new fiber and return handle
+        $fiber = new \Fiber(function() use ($effect) {
+            return $this->unsafeRunInternal($effect, $this->rootContext);
+        });
+
+        $fiber->start();
+        return new \EffectPHP\Core\Fiber\PHPFiberHandle($fiber);
+    }
+
+    /**
+     * Create a resolved promise using SyncPromiseAdapter
+     */
+    private function createResolvedPromise(mixed $value): Promise
+    {
+        $adapter = new SyncPromiseAdapter();
+        return $adapter->resolve($value);
+    }
+
+    /**
+     * Create a rejected promise using SyncPromiseAdapter
+     */
+    private function createRejectedPromise(\Throwable $error): Promise
+    {
+        $adapter = new SyncPromiseAdapter();
+        return $adapter->reject($error);
+    }
+
+    public function runSyncResult(Effect $effect): Result
+    {
+        try {
+            $result = $this->run($effect);
+            return Result::succeed($result);
+        } catch (\Throwable $error) {
+            return Result::die($error);
+        }
+    }
+
+    public function runPromiseResult(Effect $effect): Promise
+    {
+        // Create promise that will resolve asynchronously when fiber completes
+        $adapter = new SyncPromiseAdapter();
+        
+        return $adapter->fromCallable(function() use ($effect) {
+            try {
+                $result = $this->run($effect); // This will run the fiber scheduler
+                return Result::succeed($result);
+            } catch (\Throwable $error) {
+                return Result::die($error);
+            }
+        });
     }
 }

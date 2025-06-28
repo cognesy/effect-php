@@ -6,6 +6,7 @@ use EffectPHP\Core\Eff;
 use EffectPHP\Core\Either;
 use EffectPHP\Core\Option;
 use EffectPHP\Core\Utils\Duration;
+use EffectPHP\Core\Exceptions\UnknownException;
 
 describe('Effect', function () {
     
@@ -48,11 +49,153 @@ describe('Effect', function () {
         });
     });
     
-    describe('async', function () {
-        it('executes asynchronous computation', function () {
-            $effect = Eff::async(fn() => 'async result');
+    describe('try', function () {
+        it('executes computation that succeeds', function () {
+            $effect = Eff::try(fn() => json_decode('{"key": "value"}', true, 512, JSON_THROW_ON_ERROR));
             
-            expect($effect)->toProduceValue('async result');
+            expect($effect)->toProduceValue(['key' => 'value']);
+        });
+        
+        it('wraps thrown exceptions in UnknownException', function () {
+            $effect = Eff::try(fn() => json_decode('invalid json', true, 512, JSON_THROW_ON_ERROR));
+            
+            expect($effect)->toFailWith(UnknownException::class);
+        });
+        
+        it('preserves original exception as previous', function () {
+            $effect = Eff::try(fn() => throw new \RuntimeException('Original error'));
+            
+            $result = runEffectSafely($effect);
+            expect($result->isLeft())->toBeTrue();
+            
+            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            expect($error)->toBeInstanceOf(UnknownException::class);
+            expect($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
+            expect($error->getPrevious()->getMessage())->toBe('Original error');
+        });
+    });
+    
+    describe('tryWithCatch', function () {
+        it('executes computation that succeeds', function () {
+            $effect = Eff::tryWithCatch(
+                fn() => 42,
+                fn(\Throwable $e) => new \LogicException('Custom error')
+            );
+            
+            expect($effect)->toProduceValue(42);
+        });
+        
+        it('applies custom error handler on exception', function () {
+            $effect = Eff::tryWithCatch(
+                fn() => throw new \RuntimeException('Original'),
+                fn(\Throwable $e) => new \LogicException('Custom: ' . $e->getMessage())
+            );
+            
+            $result = runEffectSafely($effect);
+            expect($result->isLeft())->toBeTrue();
+            
+            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            expect($error)->toBeInstanceOf(\LogicException::class);
+            expect($error->getMessage())->toBe('Custom: Original');
+        });
+    });
+    
+    describe('suspend', function () {
+        it('creates suspended effect that evaluates lazily', function () {
+            $called = false;
+            $effect = Eff::suspend(function() use (&$called) {
+                $called = true;
+                return Eff::succeed(42);
+            });
+            
+            // Effect should not be evaluated until run
+            expect($called)->toBeFalse();
+            
+            expect($effect)->toProduceValue(42);
+            expect($called)->toBeTrue();
+        });
+        
+        it('enables stack-safe recursion', function () {
+            $countdown = function($n) use (&$countdown) {
+                return $n <= 0 
+                    ? Eff::succeed($n)
+                    : Eff::suspend(fn() => $countdown($n - 1));
+            };
+            
+            $effect = $countdown(1000);
+            expect($effect)->toProduceValue(0);
+        });
+        
+        it('preserves errors in suspended computation', function () {
+            $effect = Eff::suspend(fn() => Eff::fail(new \RuntimeException('Suspended error')));
+            
+            expect($effect)->toFailWith(\RuntimeException::class);
+        });
+    });
+    
+    
+    describe('promise', function () {
+        it('executes async computation that cannot fail', function () {
+            $effect = Eff::promise(fn() => 'promise result');
+            
+            expect($effect)->toProduceValue('promise result');
+        });
+        
+        it('handles promise-like computations', function () {
+            $effect = Eff::promise(fn() => ['data' => 'success']);
+            
+            expect($effect)->toProduceValue(['data' => 'success']);
+        });
+    });
+    
+    describe('tryPromise', function () {
+        it('executes async computation that succeeds', function () {
+            $effect = Eff::tryPromise(fn() => 'success');
+            
+            expect($effect)->toProduceValue('success');
+        });
+        
+        it('wraps async exceptions in UnknownException', function () {
+            $effect = Eff::tryPromise(fn() => throw new \RuntimeException('Async error'));
+            
+            expect($effect)->toFailWith(UnknownException::class);
+        });
+        
+        it('preserves original exception as previous', function () {
+            $effect = Eff::tryPromise(fn() => throw new \LogicException('Original async error'));
+            
+            $result = runEffectSafely($effect);
+            expect($result->isLeft())->toBeTrue();
+            
+            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            expect($error)->toBeInstanceOf(UnknownException::class);
+            expect($error->getPrevious())->toBeInstanceOf(\LogicException::class);
+            expect($error->getPrevious()->getMessage())->toBe('Original async error');
+        });
+    });
+    
+    describe('tryPromiseWith', function () {
+        it('executes async computation that succeeds', function () {
+            $effect = Eff::tryPromiseWith(
+                fn() => 'async success',
+                fn(\Throwable $e) => new \LogicException('Custom async error')
+            );
+            
+            expect($effect)->toProduceValue('async success');
+        });
+        
+        it('applies custom error handler on async exception', function () {
+            $effect = Eff::tryPromiseWith(
+                fn() => throw new \RuntimeException('Async original'),
+                fn(\Throwable $e) => new \LogicException('Custom async: ' . $e->getMessage())
+            );
+            
+            $result = runEffectSafely($effect);
+            expect($result->isLeft())->toBeTrue();
+            
+            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            expect($error)->toBeInstanceOf(\LogicException::class);
+            expect($error->getMessage())->toBe('Custom async: Async original');
         });
     });
     

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
 use EffectPHP\Core\Either;
+use EffectPHP\Core\Fiber\FiberScheduler;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Runtime\FiberRuntime;
 
@@ -183,7 +184,7 @@ describe('FiberRuntime', function () {
         $runtime = new FiberRuntime();
         $scheduler = $runtime->getScheduler();
         
-        expect($scheduler)->toBeInstanceOf(\EffectPHP\Core\Runtime\Fiber\FiberScheduler::class);
+        expect($scheduler)->toBeInstanceOf(FiberScheduler::class);
     });
     
     it('runs effect with custom context using run method', function () {

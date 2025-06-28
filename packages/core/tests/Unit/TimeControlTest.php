@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use EffectPHP\Core\Clock\SystemClock;
+use EffectPHP\Core\Clock\TestClock;
 use EffectPHP\Core\Contracts\Clock;
 use EffectPHP\Core\Eff;
 use EffectPHP\Core\Layer\Layer;
-use EffectPHP\Core\Runtime\Clock\SystemClock;
-use EffectPHP\Core\Runtime\Clock\TestClock;
 use EffectPHP\Core\Utils\Duration;
 
 describe('Time Control with Effect System', function () {

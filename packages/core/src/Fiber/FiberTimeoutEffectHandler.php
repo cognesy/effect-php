@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Core\Runtime\Fiber;
+namespace EffectPHP\Core\Fiber;
 
 use EffectPHP\Core\Cause\Cause;
 use EffectPHP\Core\Contracts\Clock;

@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Core\Runtime\Scheduler;
+namespace EffectPHP\Core\Scheduler;
+
+use Closure;
 
 /**
  * Represents a scheduled task
@@ -11,7 +13,7 @@ final class ScheduledTask
 {
     public function __construct(
         public readonly int $id,
-        public readonly callable $task,
+        public readonly Closure $task,
         public readonly int $scheduledTime,
         public bool $cancelled = false
     ) {}

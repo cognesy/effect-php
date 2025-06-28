@@ -28,10 +28,6 @@ abstract class BaseEffect implements Effect
         return new MapEffect($this, $mapper);
     }
 
-    public function mapAsync(callable $mapper): AsyncMapEffect
-    {
-        return new AsyncMapEffect($this, $mapper);
-    }
 
     public function flatMap(callable $chain): Effect
     {
