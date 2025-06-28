@@ -16,7 +16,7 @@ use EffectPHP\Core\Contracts\Effect;
  * - Async runtimes: May defer to event loop
  * - Testing runtimes: May mock or instrument
  */
-final class SyncEffect extends EffectBase
+final class SyncEffect extends BaseEffect
 {
     public function __construct(
         public readonly Closure $computation

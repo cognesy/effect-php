@@ -54,8 +54,10 @@ final readonly class Either
 
     /**
      * @template R2
+     *
      * @param callable(R): R2 $mapper
-     * @return Either<L, R2>
+     *
+     * @psalm-return self<L, R>|self<never, mixed>
      */
     public function map(callable $mapper): self
     {
@@ -64,8 +66,10 @@ final readonly class Either
 
     /**
      * @template L2
+     *
      * @param callable(L): L2 $mapper
-     * @return Either<L2, R>
+     *
+     * @psalm-return self<L, R>|self<mixed, never>
      */
     public function mapLeft(callable $mapper): self
     {
@@ -74,8 +78,10 @@ final readonly class Either
 
     /**
      * @template R2
+     *
      * @param callable(R): Either<L, R2> $mapper
-     * @return Either<L, R2>
+     *
+     * @psalm-return self<L, R2>|self<L, R>
      */
     public function flatMap(callable $mapper): self
     {

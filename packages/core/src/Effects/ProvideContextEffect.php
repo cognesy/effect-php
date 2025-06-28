@@ -7,7 +7,7 @@ namespace EffectPHP\Core\Effects;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Layer\Context;
 
-final class ProvideContextEffect extends EffectBase
+final class ProvideContextEffect extends BaseEffect
 {
     public function __construct(
         public readonly Effect $source,

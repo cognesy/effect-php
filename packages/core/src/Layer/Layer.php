@@ -25,9 +25,11 @@ final readonly class Layer
      * @template RIn
      * @template E of \Throwable
      * @template T
+     *
      * @param Effect<RIn, E, T> $effect
      * @param class-string<T> $tag
-     * @return Layer<RIn, E, Context<T>>
+     *
+     * @psalm-return self<mixed, \Throwable, mixed>
      */
     public static function fromEffect(Effect $effect, string $tag): self
     {
@@ -53,18 +55,17 @@ final readonly class Layer
      * Create layer from value with zero cost
      *
      * @template T
+     *
      * @param T $service
      * @param class-string<T> $tag
-     * @return Layer<never, never, Context<T>>
+     *
+     * @psalm-return self<mixed, \Throwable, Context<T>>
      */
     public static function fromValue(object $service, string $tag): self
     {
         return self::fromEffect(Eff::succeed($service), $tag);
     }
 
-    /**
-     * @return \EffectPHP\Core\Contracts\Effect<RIn, E, ROut>
-     */
     public function build(): Effect
     {
         return $this->builder;
@@ -76,8 +77,10 @@ final readonly class Layer
      * @template RIn2
      * @template E2 of \Throwable
      * @template ROut2
+     *
      * @param Layer<RIn2, E2, ROut2> $other
-     * @return Layer<RIn&RIn2, E|E2, ROut&ROut2>
+     *
+     * @psalm-return self<mixed, \Throwable, mixed>
      */
     public function combineWith(Layer $other): self
     {
@@ -89,14 +92,16 @@ final readonly class Layer
 
     /**
      * Combine layers sequentially (for dependent layers)
-     * 
+     *
      * The other layer will have access to services from this layer
      *
      * @template RIn2
      * @template E2 of \Throwable
      * @template ROut2
+     *
      * @param Layer<RIn2, E2, ROut2> $other
-     * @return Layer<RIn&RIn2, E|E2, ROut&ROut2>
+     *
+     * @psalm-return self<mixed, \Throwable, mixed>
      */
     public function andThen(Layer $other): self
     {
@@ -114,8 +119,10 @@ final readonly class Layer
      * @template R
      * @template E2 of \Throwable
      * @template A
+     *
      * @param \EffectPHP\Core\Contracts\Effect<R&ROut, E2, A> $effect
-     * @return \EffectPHP\Core\Contracts\Effect<R&RIn, E|E2, A>
+     *
+     * @psalm-return Effect<RIn&R2, E|\Throwable, mixed>
      */
     public function provideTo(Effect $effect): Effect
     {

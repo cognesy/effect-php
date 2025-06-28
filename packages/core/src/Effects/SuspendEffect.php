@@ -13,9 +13,9 @@ use EffectPHP\Core\Contracts\Effect;
  * @template R
  * @template E of \Throwable
  * @template A
- * @extends EffectBase<R, E, A>
+ * @extends BaseEffect<R, E, A>
  */
-final class SuspendEffect extends EffectBase
+final class SuspendEffect extends BaseEffect
 {
     public function __construct(
         public readonly Effect $source,

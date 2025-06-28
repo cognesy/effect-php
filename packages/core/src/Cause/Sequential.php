@@ -7,7 +7,7 @@ final readonly class Sequential extends Cause
 {
     public function __construct(public array $causes) {}
 
-    public function map(callable $mapper): Cause
+    public function map(callable $mapper): self
     {
         return new Sequential(array_map(fn($c) => $c->map($mapper), $this->causes));
     }

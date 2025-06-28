@@ -7,6 +7,7 @@ namespace EffectPHP\Core\Contracts;
 use EffectPHP\Core\Exceptions\TimeoutException;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Layer\Layer;
+use EffectPHP\Core\Scope;
 use EffectPHP\Core\Utils\Duration;
 use EffectPHP\Core\Schedule\Schedule;
 use Throwable;

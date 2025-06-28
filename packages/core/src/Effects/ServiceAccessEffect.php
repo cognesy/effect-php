@@ -6,7 +6,7 @@ namespace EffectPHP\Core\Effects;
 
 use EffectPHP\Core\Contracts\Effect;
 
-final class ServiceAccessEffect extends EffectBase
+final class ServiceAccessEffect extends BaseEffect
 {
     public function __construct(public readonly string $serviceTag) {}
 

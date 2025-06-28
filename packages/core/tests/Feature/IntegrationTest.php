@@ -119,9 +119,9 @@ describe('Integration Tests', function () {
             // Execute workflow
             $userData = ['id' => 3, 'email' => 'charlie@example.com', 'name' => 'Charlie'];
             $workflow = $registerUser($userData);
-            $result = $appLayer->provideTo($workflow);
+            $result = Eff::runSync($appLayer->provideTo($workflow));
             
-            expect($result)->toProduceValue('User Charlie registered successfully');
+            expect($result)->toBe('User Charlie registered successfully');
             
             // Verify side effects
             expect($emailService->sentEmails)->toHaveCount(1)
@@ -157,9 +157,9 @@ describe('Integration Tests', function () {
             
             // Test with non-existent user
             $workflow = $processUser(999);
-            $result = $appLayer->provideTo($workflow);
+            $result = Eff::runSync($appLayer->provideTo($workflow));
             
-            expect($result)->toProduceValue('Error handled')
+            expect($result)->toBe('Error handled')
                 ->and($logger->logs)->toHaveCount(1)
                 ->and($logger->logs[0]['level'])->toBe('error')
                 ->and($logger->logs[0]['message'])->toContain('User 999 not found');
@@ -288,9 +288,9 @@ describe('Integration Tests', function () {
                     ->map(fn() => $names)
             );
             
-            $workflow = $appLayer->provideTo($parallelProcessing);
+            $workflow = Eff::runSync($appLayer->provideTo($parallelProcessing));
             
-            expect($workflow)->toProduceValue(['Alice', 'Bob'])
+            expect($workflow)->toBe(['Alice', 'Bob'])
                 ->and($logger->logs)->toHaveCount(1)
                 ->and($logger->logs[0]['message'])->toBe('Processed users: Alice, Bob');
         });
@@ -350,9 +350,9 @@ describe('Integration Tests', function () {
             ];
             
             $workflow = $processOrder($validOrder);
-            $result = $appLayer->provideTo($workflow);
+            $result = Eff::runSync($appLayer->provideTo($workflow));
             
-            expect($result)->toProduceValue('Order #123 completed successfully')
+            expect($result)->toBe('Order #123 completed successfully')
                 ->and($logger->logs)->toHaveCount(2);
             
             // Reset logger
@@ -361,9 +361,9 @@ describe('Integration Tests', function () {
             // Test order with validation error
             $invalidOrder = ['id' => 124, 'items' => []];
             $workflow2 = $processOrder($invalidOrder);
-            $result2 = $appLayer->provideTo($workflow2);
+            $result2 = Eff::runSync($appLayer->provideTo($workflow2));
             
-            expect($result2)->toProduceValue('Order validation failed')
+            expect($result2)->toBe('Order validation failed')
                 ->and($logger->logs)->toHaveCount(2)
                 ->and($logger->logs[1]['level'])->toBe('error');
         });

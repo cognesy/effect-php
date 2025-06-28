@@ -7,7 +7,7 @@ use EffectPHP\Core\Exceptions\InterruptedException;
 
 final readonly class Interrupt extends Cause
 {
-    public function map(callable $mapper): Cause
+    public function map(callable $mapper): self
     {
         return $this;
     }

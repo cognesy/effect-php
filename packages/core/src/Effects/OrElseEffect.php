@@ -6,7 +6,7 @@ namespace EffectPHP\Core\Effects;
 
 use EffectPHP\Core\Contracts\Effect;
 
-final class OrElseEffect extends EffectBase
+final class OrElseEffect extends BaseEffect
 {
     public function __construct(
         public readonly Effect $primary,

@@ -7,6 +7,7 @@ namespace EffectPHP\Core\Runtime;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Contracts\Clock;
+use EffectPHP\Core\Effects\CatchEffect;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Runtime\Clock\SystemClock;
 use EffectPHP\Core\Runtime\Fiber\FiberScheduler;
@@ -131,7 +132,7 @@ final class FiberRuntime implements Runtime
                         return $result->value;
                     }
                     $continuation = array_pop($stack);
-                } while ($continuation instanceof \EffectPHP\Core\Effects\CatchEffect);
+                } while ($continuation instanceof CatchEffect);
                 
                 $current = $continuation($result->value);
                 continue;
@@ -143,7 +144,7 @@ final class FiberRuntime implements Runtime
                 while (!empty($stack)) {
                     $stackItem = array_pop($stack);
                     
-                    if ($stackItem instanceof \EffectPHP\Core\Effects\CatchEffect) {
+                    if ($stackItem instanceof CatchEffect) {
                         // Check if this catch handler can handle the error
                         $error = $result->cause->error;
                         
@@ -173,7 +174,10 @@ final class FiberRuntime implements Runtime
         }
     }
 
-    public function tryRun(Effect $effect, ?Context $context = null): Effect
+    /**
+     * @psalm-return FailureEffect<\Throwable>|SuccessEffect<mixed>
+     */
+    public function tryRun(Effect $effect, ?Context $context = null): FailureEffect|SuccessEffect
     {
         try {
             $result = $this->run($effect, $context);

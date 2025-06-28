@@ -10,9 +10,9 @@ use EffectPHP\Core\Cause\Cause;
  * Failure effect - immediate error
  *
  * @template E of \Throwable
- * @extends EffectBase<never, E, never>
+ * @extends BaseEffect<never, E, never>
  */
-final class FailureEffect extends EffectBase
+final class FailureEffect extends BaseEffect
 {
     public function __construct(public readonly Cause $cause) {}
 }

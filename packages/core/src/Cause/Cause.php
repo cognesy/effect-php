@@ -16,8 +16,10 @@ abstract readonly class Cause
 {
     /**
      * @template E of Throwable
+     *
      * @param E $error
-     * @return Fail<E>
+     *
+     * @psalm-return Fail<Throwable>
      */
     public static function fail(Throwable $error): Fail
     {

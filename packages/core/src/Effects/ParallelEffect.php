@@ -6,7 +6,7 @@ namespace EffectPHP\Core\Effects;
 
 use EffectPHP\Core\Contracts\Effect;
 
-final class ParallelEffect extends EffectBase
+final class ParallelEffect extends BaseEffect
 {
     public function __construct(public readonly array $effects) {}
 

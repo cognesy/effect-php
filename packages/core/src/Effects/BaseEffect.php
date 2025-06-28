@@ -18,7 +18,7 @@ use EffectPHP\Core\Schedule\Schedule;
  * @template A
  * @implements Effect<R, E, A>
  */
-abstract class EffectBase implements Effect
+abstract class BaseEffect implements Effect
 {
     /**
      * Optimized map with continuation fusion

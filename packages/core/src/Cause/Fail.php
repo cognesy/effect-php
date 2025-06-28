@@ -14,7 +14,10 @@ final readonly class Fail extends Cause
 {
     public function __construct(public Throwable $error) {}
 
-    public function map(callable $mapper): Cause
+    /**
+     * @psalm-return self<Throwable>
+     */
+    public function map(callable $mapper): self
     {
         return new Fail($mapper($this->error));
     }

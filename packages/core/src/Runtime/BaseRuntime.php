@@ -57,7 +57,10 @@ abstract class BaseRuntime implements Runtime
         }
     }
 
-    public function tryRun(Effect $effect, ?Context $context = null): Effect
+    /**
+     * @psalm-return FailureEffect<\Throwable>|SuccessEffect<mixed>
+     */
+    public function tryRun(Effect $effect, ?Context $context = null): FailureEffect|SuccessEffect
     {
         try {
             $result = $this->run($effect, $context);

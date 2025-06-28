@@ -14,7 +14,7 @@ use EffectPHP\Core\Contracts\Effect;
  * - Explicit closure capture with use() keyword
  * - Leverages WeakMap for automatic resource tracking
  */
-final class ScopeEffect extends EffectBase
+final class ScopeEffect extends BaseEffect
 {
     public function __construct(
         public readonly Closure $scoped

@@ -7,7 +7,7 @@ namespace EffectPHP\Core\Effects;
 use Closure;
 use EffectPHP\Core\Contracts\Effect;
 
-final class AsyncMapEffect extends EffectBase
+final class AsyncMapEffect extends BaseEffect
 {
     public function __construct(
         public readonly Effect $source,

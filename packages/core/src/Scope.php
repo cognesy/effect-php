@@ -80,8 +80,8 @@ final class Scope
 
     /**
      * Close scope - returns Effect for composition (EffectTS spirit)
-     * 
-     * @return Effect<never, never, null>
+     *
+     * @psalm-return Effect<never, \Throwable, mixed>|Effect<never, never, null>
      */
     public function close(): Effect
     {
@@ -104,12 +104,12 @@ final class Scope
 
     /**
      * Create scoped effect (follows EffectTS Effect.scoped pattern)
-     * 
+     *
      * @template A
+     *
      * @param callable(Scope): Effect<mixed, mixed, A> $scoped
-     * @return Effect<mixed, mixed, A>
      */
-    public static function make(callable $scoped): Effect
+    public static function make(callable $scoped): ScopeEffect
     {
         return new ScopeEffect($scoped);
     }

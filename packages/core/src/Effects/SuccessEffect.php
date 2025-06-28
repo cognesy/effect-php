@@ -8,9 +8,9 @@ namespace EffectPHP\Core\Effects;
  * Success effect - immediate value
  *
  * @template A
- * @extends EffectBase<never, never, A>
+ * @extends BaseEffect<never, never, A>
  */
-final class SuccessEffect extends EffectBase
+final class SuccessEffect extends BaseEffect
 {
     public function __construct(public readonly mixed $value) {}
 }

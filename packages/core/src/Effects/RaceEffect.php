@@ -6,7 +6,7 @@ namespace EffectPHP\Core\Effects;
 
 use EffectPHP\Core\Contracts\Effect;
 
-final class RaceEffect extends EffectBase
+final class RaceEffect extends BaseEffect
 {
     public function __construct(public readonly array $effects) {}
 

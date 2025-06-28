@@ -39,9 +39,9 @@ use EffectPHP\Core\Contracts\Effect;
  * @template R
  * @template E of \Throwable  
  * @template A
- * @extends EffectBase<R, E, A>
+ * @extends BaseEffect<R, E, A>
  */
-final class NeverEffect extends EffectBase
+final class NeverEffect extends BaseEffect
 {
     private static ?self $instance = null;
     
@@ -57,32 +57,40 @@ final class NeverEffect extends EffectBase
     
     /**
      * Never effect composed with anything is still never
+     *
+     * @psalm-return self<R, E, A>
      */
-    public function flatMap(callable $chain): Effect
+    public function flatMap(callable $chain): self
     {
         return $this;
     }
     
     /**
      * Never effect mapped is still never
+     *
+     * @psalm-return self<R, E, A>
      */
-    public function map(callable $mapper): Effect
+    public function map(callable $mapper): self
     {
         return $this;
     }
     
     /**
      * Never effect has no errors to catch
+     *
+     * @psalm-return self<R, E, A>
      */
-    public function catchError(string|callable $errorType, callable $handler): Effect
+    public function catchError(string|callable $errorType, callable $handler): self
     {
         return $this;
     }
     
     /**
      * Never effect with fallback is still never (never doesn't fail)
+     *
+     * @psalm-return self<R, E, A>
      */
-    public function orElse(Effect $fallback): Effect
+    public function orElse(Effect $fallback): self
     {
         return $this;
     }

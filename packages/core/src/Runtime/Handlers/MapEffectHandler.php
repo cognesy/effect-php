@@ -21,7 +21,10 @@ final class MapEffectHandler implements EffectHandler
     public function handle(Effect $effect, array &$stack, Context $context, Runtime $runtime): Effect
     {
         /** @var MapEffect $effect */
-        $stack[] = fn($value) => new SuccessEffect(($effect->mapper)($value));
+        $stack[] = /**
+         * @psalm-return \EffectPHP\Core\Effects\SuccessEffect<mixed>
+         */
+        fn($value): \EffectPHP\Core\Effects\SuccessEffect => new SuccessEffect(($effect->mapper)($value));
         return $effect->source;
     }
 }

@@ -42,10 +42,12 @@ final class Eff
      * Create failed Effect with structured cause
      *
      * @template E of Throwable
+     *
      * @param Throwable $error
-     * @return Effect<never, E, never>
+     *
+     * @psalm-return FailureEffect<Throwable>
      */
-    public static function fail(Throwable $error): Effect
+    public static function fail(Throwable $error): FailureEffect
     {
         return new FailureEffect(Cause::fail($error));
     }
@@ -54,10 +56,10 @@ final class Eff
      * Lift synchronous computation with error handling
      *
      * @template A
+     *
      * @param callable(): A $computation
-     * @return Effect<never, Throwable, A>
      */
-    public static function sync(callable $computation): Effect
+    public static function sync(callable $computation): SyncEffect
     {
         return new SyncEffect($computation);
     }
@@ -66,10 +68,10 @@ final class Eff
      * Lift async computation with proper fiber foundation
      *
      * @template A
+     *
      * @param callable(): A $computation
-     * @return Effect<never, Throwable, A>
      */
-    public static function async(callable $computation): Effect
+    public static function async(callable $computation): AsyncMapEffect
     {
         return new AsyncMapEffect(new SuccessEffect(null), $computation);
     }
@@ -78,10 +80,10 @@ final class Eff
      * Access service from context
      *
      * @template T
+     *
      * @param class-string<T> $serviceTag
-     * @return Effect<T, ServiceNotFoundException, T>
      */
-    public static function service(string $serviceTag): Effect
+    public static function service(string $serviceTag): ServiceAccessEffect
     {
         return new ServiceAccessEffect($serviceTag);
     }
@@ -127,7 +129,9 @@ final class Eff
      * Execute effects in parallel with type safety
      *
      * @template A
-     * @param Effect $effects
+     *
+     * @param array $effects
+     *
      * @return Effect<mixed, mixed, A[]>
      */
     public static function allInParallel(array $effects): Effect
@@ -139,10 +143,10 @@ final class Eff
      * Race multiple effects
      *
      * @template A
-     * @param Effect $effects
-     * @return Effect<mixed, mixed, A>
+     *
+     * @param array $effects
      */
-    public static function raceAll(array $effects): Effect
+    public static function raceAll(array $effects): RaceEffect
     {
         return new RaceEffect($effects);
     }
@@ -151,19 +155,16 @@ final class Eff
      * Sleep for specified duration
      *
      * @param Duration $duration
-     * @return Effect<never, never, null>
      */
-    public static function sleepFor(Duration $duration): Effect
+    public static function sleepFor(Duration $duration): SleepEffect
     {
         return new SleepEffect($duration);
     }
 
     /**
      * Effect that never completes
-     *
-     * @return Effect<never, never, never>
      */
-    public static function never(): Effect
+    public static function never(): NeverEffect
     {
         return NeverEffect::instance();
     }

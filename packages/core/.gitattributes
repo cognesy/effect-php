@@ -1,6 +1,7 @@
 # Exclude unnecessary files from Composer and Git exports
+/.claude          export-ignore
 /.cursorignore    export-ignore
-/.cursorprompt     export-ignore
+/.cursorprompt    export-ignore
 /.github/         export-ignore
 /.gitignore       export-ignore
 /.gitattributes   export-ignore
@@ -15,7 +16,7 @@
 /phpunit.xml.dist export-ignore
 /psalm.xml        export-ignore
 /pyrightconfig.json export-ignore
-/requirements-doc.txt   export-ignore
+/requirements-doc.txt export-ignore
 *.md              export-ignore
 *.mdx             export-ignore
 

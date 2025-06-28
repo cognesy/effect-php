@@ -7,7 +7,7 @@ namespace EffectPHP\Core\Effects;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Utils\Duration;
 
-final class TimeoutEffect extends EffectBase
+final class TimeoutEffect extends BaseEffect
 {
     public function __construct(
         public readonly Effect $source,

@@ -7,7 +7,7 @@ namespace EffectPHP\Core\Effects;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Schedule\Schedule;
 
-final class RetryEffect extends EffectBase
+final class RetryEffect extends BaseEffect
 {
     public function __construct(
         public readonly Effect $source,

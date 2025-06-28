@@ -1,0 +1,43 @@
+{
+    "name": "effect-php/effect-php",
+    "description": "Functional effect system based on Effect TS concepts - PHP8 port with stack-safe execution",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["effect", "monad", "functional", "async", "error-handling"],
+    "autoload": {
+        "psr-4": {
+            "EffectPHP\\Core\\": "packages/core/src/",
+            "EffectPHP\\Schema\\": "packages/schema/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EffectPHP\\Core\\Tests\\": "tests/",
+            "EffectPHP\\Schema\\Tests\\": "packages/schema/tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dariusz Debowczyk",
+            "email": "ddebowczyk@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "pestphp/pest": "^2.0",
+        "phpunit/phpunit": "^10.0"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "pest"
+    }
+}

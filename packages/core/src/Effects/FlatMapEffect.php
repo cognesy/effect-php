@@ -7,7 +7,7 @@ namespace EffectPHP\Core\Effects;
 use Closure;
 use EffectPHP\Core\Contracts\Effect;
 
-final class FlatMapEffect extends EffectBase
+final class FlatMapEffect extends BaseEffect
 {
     public function __construct(
         public readonly Effect $source,

@@ -8,6 +8,7 @@ use EffectPHP\Core\Cause\Cause;
 use EffectPHP\Core\Contracts\Clock;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Contracts\Runtime;
+use EffectPHP\Core\Effects\CatchEffect;
 use EffectPHP\Core\Effects\FailureEffect;
 use EffectPHP\Core\Effects\ProvideContextEffect;
 use EffectPHP\Core\Effects\SuccessEffect;
@@ -113,7 +114,7 @@ final class DefaultRuntime implements Runtime
                         return $result->value;
                     }
                     $continuation = array_pop($stack);
-                } while ($continuation instanceof \EffectPHP\Core\Effects\CatchEffect);
+                } while ($continuation instanceof CatchEffect);
                 
                 $current = $continuation($result->value);
                 continue;
@@ -125,7 +126,7 @@ final class DefaultRuntime implements Runtime
                 while (!empty($stack)) {
                     $stackItem = array_pop($stack);
                     
-                    if ($stackItem instanceof \EffectPHP\Core\Effects\CatchEffect) {
+                    if ($stackItem instanceof CatchEffect) {
                         // Check if this catch handler can handle the error
                         $error = $result->cause->error;
                         
@@ -154,7 +155,10 @@ final class DefaultRuntime implements Runtime
         }
     }
 
-    public function tryRun(Effect $effect, Context $context): Effect
+    /**
+     * @psalm-return FailureEffect<Throwable>|SuccessEffect<mixed>
+     */
+    public function tryRun(Effect $effect, Context $context): FailureEffect|SuccessEffect
     {
         try {
             $runtime = $this->withContext($context);
