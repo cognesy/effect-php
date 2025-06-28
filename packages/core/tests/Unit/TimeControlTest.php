@@ -6,6 +6,7 @@ use EffectPHP\Core\Clock\SystemClock;
 use EffectPHP\Core\Clock\TestClock;
 use EffectPHP\Core\Contracts\Clock;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Core\Layer\Layer;
 use EffectPHP\Core\Utils\Duration;
 
@@ -15,9 +16,9 @@ describe('Time Control with Effect System', function () {
         it('provides real system time through Effects', function () {
             $effect = Eff::currentTimeMillis();
             
-            $time1 = Eff::runSync($effect);
+            $time1 = Run::sync($effect);
             usleep(1000); // 1ms
-            $time2 = Eff::runSync($effect);
+            $time2 = Run::sync($effect);
             
             expect($time2)->toBeGreaterThan($time1);
         });
@@ -26,7 +27,7 @@ describe('Time Control with Effect System', function () {
             $start = microtime(true);
             
             $effect = Eff::sleepFor(Duration::milliseconds(10));
-            Eff::runSync($effect);
+            Run::sync($effect);
             
             $elapsed = microtime(true) - $start;
             expect($elapsed)->toBeGreaterThan(0.005); // At least 5ms

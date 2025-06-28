@@ -5,7 +5,9 @@ declare(strict_types=1);
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Either;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Core\Option;
+use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Runtime\RuntimeManager;
 use Pest\Expectation;
 
@@ -33,40 +35,28 @@ use Pest\Expectation;
 |
 */
 
-expect()->extend('toBeOption', function () {
-    return $this->toBeInstanceOf(Option::class);
-});
-
-expect()->extend('toBeEither', function () {
-    return $this->toBeInstanceOf(Either::class);
-});
-
-expect()->extend('toBeEffect', function () {
-    return $this->toBeInstanceOf(Effect::class);
-});
-
 expect()->extend('toRunSuccessfully', function () {
-    $result = Eff::runSafely($this->value);
+    $result = Run::syncResult($this->value);
     
-    expect($result->isRight())->toBeTrue();
+    expect($result->isSuccess())->toBeTrue();
     
     return $this;
 });
 
 expect()->extend('toFailWith', function (string $exceptionClass) {
-    $result = Eff::runSafely($this->value);
+    $result = Run::syncResult($this->value);
     
-    expect($result->isLeft())->toBeTrue();
-    expect($result->fold(fn($e) => $e, fn($v) => null))->toBeInstanceOf($exceptionClass);
+    expect($result->isFailure())->toBeTrue();
+    expect($result->getErrorOrNull())->toBeInstanceOf($exceptionClass);
     
     return $this;
 });
 
 expect()->extend('toProduceValue', function (mixed $expectedValue) {
-    $result = Eff::runSafely($this->value);
+    $result = Run::syncResult($this->value);
     
-    expect($result->isRight())->toBeTrue();
-    expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($expectedValue);
+    expect($result->isSuccess())->toBeTrue();
+    expect($result->getValueOrNull())->toBe($expectedValue);
     
     return $this;
 });
@@ -87,17 +77,12 @@ function runtime()
     return RuntimeManager::default();
 }
 
-function expectEffect($effect): Expectation
-{
-    return expect($effect)->toBeEffect();
-}
-
 function runEffect($effect): mixed
 {
-    return Eff::runSync($effect);
+    return Run::sync($effect);
 }
 
-function runEffectSafely($effect): Either
+function runEffectSafely($effect): Result
 {
-    return Eff::runSafely($effect);
+    return Run::syncResult($effect);
 }

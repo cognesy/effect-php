@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use EffectPHP\Core\Cause\Cause;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 
 describe('Structured Error Handling', function () {
     
@@ -19,7 +20,7 @@ describe('Structured Error Handling', function () {
             $parallelEffect = Eff::allInParallel($effects);
             
             try {
-                Eff::runSync($parallelEffect);
+                Run::sync($parallelEffect);
                 expect(false)->toBeTrue('Should have thrown exception');
             } catch (\Throwable $e) {
                 // First error is thrown, but Cause system should track all errors
@@ -107,7 +108,7 @@ describe('Structured Error Handling', function () {
             });
             
             try {
-                Eff::runSync($withContext);
+                Run::sync($withContext);
                 expect(false)->toBeTrue('Should have thrown exception');
             } catch (\RuntimeException $e) {
                 expect($e->getMessage())->toContain('Operation failed in UserService')
@@ -199,7 +200,7 @@ describe('Structured Error Handling', function () {
                     return Eff::fail($e);
                 });
             
-            $result = Eff::runSync($processResponse);
+            $result = Run::sync($processResponse);
             
             expect($result['error'])->toBe('INVALID_LLM_OUTPUT')
                 ->and($result['raw'])->toContain('invalid json content');
@@ -229,7 +230,7 @@ describe('Structured Error Handling', function () {
                 });
             });
             
-            $result = Eff::runSync($withRetry);
+            $result = Run::sync($withRetry);
             
             expect($result['success'])->toBeTrue()
                 ->and($result['attempts'])->toBe(3);
@@ -254,7 +255,7 @@ describe('Structured Error Handling', function () {
                 return Eff::succeed('Used fallback');
             });
             
-            $result = Eff::runSync($withLogging);
+            $result = Run::sync($withLogging);
             
             expect($result)->toBe('Used fallback')
                 ->and($logger->logs)->toHaveCount(1)

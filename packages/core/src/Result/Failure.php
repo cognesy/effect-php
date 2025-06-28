@@ -45,4 +45,26 @@ final class Failure extends Result
     {
         return $onFailure($this->cause);
     }
+    
+    /**
+     * Get the error directly
+     * Safe to call since this is a Failure instance
+     * 
+     * @return \Throwable
+     */
+    public function getError(): \Throwable
+    {
+        return $this->cause->error;
+    }
+    
+    /**
+     * Get the cause directly
+     * Safe to call since this is a Failure instance
+     * 
+     * @return Cause
+     */
+    public function getCause(): Cause
+    {
+        return $this->cause;
+    }
 }

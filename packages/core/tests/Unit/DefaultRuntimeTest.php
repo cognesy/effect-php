@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
-use EffectPHP\Core\Either;
 use EffectPHP\Core\Layer\Context;
+use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Runtime\DefaultRuntime;
 
 describe('DefaultRuntime', function () {
@@ -31,27 +31,27 @@ describe('DefaultRuntime', function () {
             ->toThrow(\RuntimeException::class, 'Test error');
     });
     
-    it('returns Either for runSafely with success', function () {
+    it('returns Result for runSafely with success', function () {
         $runtime = new DefaultRuntime();
         $effect = Eff::succeed(100);
         
         $result = $runtime->runSafely($effect);
         
-        expect($result)->toBeInstanceOf(Either::class)
-            ->and($result->isRight())->toBeTrue()
-            ->and($result->fold(fn($l) => null, fn($r) => $r))->toBe(100);
+        expect($result)->toBeInstanceOf(Result::class)
+            ->and($result->isSuccess())->toBeTrue()
+            ->and($result->fold(fn($cause) => null, fn($r) => $r))->toBe(100);
     });
     
-    it('returns Either for runSafely with failure', function () {
+    it('returns Result for runSafely with failure', function () {
         $runtime = new DefaultRuntime();
         $effect = Eff::fail(new \LogicException('Logic error'));
         
         $result = $runtime->runSafely($effect);
         
-        expect($result)->toBeInstanceOf(Either::class)
-            ->and($result->isLeft())->toBeTrue();
+        expect($result)->toBeInstanceOf(Result::class)
+            ->and($result->isFailure())->toBeTrue();
         
-        $error = $result->fold(fn($l) => $l, fn($r) => null);
+        $error = $result->fold(fn($cause) => $cause->error, fn($r) => null);
         expect($error)->toBeInstanceOf(\LogicException::class)
             ->and($error->getMessage())->toBe('Logic error');
     });

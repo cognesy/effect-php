@@ -6,6 +6,7 @@ namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\AST\ASTNodeInterface;
 use EffectPHP\Schema\Contracts\SchemaInterface;
 
@@ -49,8 +50,8 @@ abstract class BaseSchema implements SchemaInterface
     public function is(mixed $input): bool
     {
         // Materialize Effect to Either using runtime
-        $result = Eff::runSafely($this->decode($input));
-        return $result->isRight();
+        $result = Run::syncResult($this->decode($input));
+        return $result->isSuccess();
     }
 
     /**
@@ -63,7 +64,7 @@ abstract class BaseSchema implements SchemaInterface
     public function assert(mixed $input): mixed
     {
         // Materialize Effect with runtime, throw on failure
-        return Eff::runSync($this->decode($input));
+        return Run::sync($this->decode($input));
     }
 
     /**

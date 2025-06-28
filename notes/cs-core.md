@@ -18,8 +18,8 @@
 - `Eff::fromOption(Option $option, Throwable $whenEmpty): Effect<never, Throwable, A>` - Option to Effect.
 - `Eff::fromEither(Either $either): Effect<never, L, R>` - Either to Effect.
 - `Eff::scoped(callable(Scope): Effect $scoped): Effect<R, E, A>` - Create a scoped effect.
-- `Eff::runSync(Effect $effect): A` - Execute an effect synchronously.
-- `Eff::runSafely(Effect $effect): Either<E, A>` - Execute an effect safely.
+- `Run::sync(Effect $effect): A` - Execute an effect synchronously.
+- `Run::syncResult(Effect $effect): Either<E, A>` - Execute an effect safely.
 
 ## Effect - The Core Interface
 

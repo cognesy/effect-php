@@ -6,6 +6,7 @@ namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\AST\RecordType;
 use EffectPHP\Schema\Contracts\SchemaInterface;
 use EffectPHP\Schema\Parse\ParseError;
@@ -55,21 +56,21 @@ final class RecordSchema extends BaseSchema
 
         foreach ($input as $key => $value) {
             // Validate key
-            $keyResult = Eff::runSafely($this->keySchema->decode($key));
-            if ($keyResult->isLeft()) {
+            $keyResult = Run::syncResult($this->keySchema->decode($key));
+            if ($keyResult->isFailure()) {
                 $errors[] = new TypeIssue('valid key', gettype($key), [(string)$key]);
                 continue;
             }
 
             // Validate value
-            $valueResult = Eff::runSafely($this->valueSchema->decode($value));
-            if ($valueResult->isLeft()) {
+            $valueResult = Run::syncResult($this->valueSchema->decode($value));
+            if ($valueResult->isFailure()) {
                 $errors[] = new TypeIssue('valid value', gettype($value), [(string)$key]);
                 continue;
             }
 
-            $validatedPairs[$keyResult->fold(fn($e) => $key, fn($v) => $v)] = 
-                $valueResult->fold(fn($e) => $value, fn($v) => $v);
+            $validatedPairs[$keyResult->getValueOrNull() ?? $key] = 
+                $valueResult->getValueOrNull() ?? $value;
         }
 
         if (!empty($errors)) {
@@ -94,21 +95,21 @@ final class RecordSchema extends BaseSchema
 
         foreach ($input as $key => $value) {
             // Encode key
-            $keyResult = Eff::runSafely($this->keySchema->encode($key));
-            if ($keyResult->isLeft()) {
+            $keyResult = Run::syncResult($this->keySchema->encode($key));
+            if ($keyResult->isFailure()) {
                 $errors[] = new TypeIssue('encodable key', gettype($key), [(string)$key]);
                 continue;
             }
 
             // Encode value
-            $valueResult = Eff::runSafely($this->valueSchema->encode($value));
-            if ($valueResult->isLeft()) {
+            $valueResult = Run::syncResult($this->valueSchema->encode($value));
+            if ($valueResult->isFailure()) {
                 $errors[] = new TypeIssue('encodable value', gettype($value), [(string)$key]);
                 continue;
             }
 
-            $encodedPairs[$keyResult->fold(fn($e) => $key, fn($v) => $v)] = 
-                $valueResult->fold(fn($e) => $value, fn($v) => $v);
+            $encodedPairs[$keyResult->getValueOrNull() ?? $key] = 
+                $valueResult->getValueOrNull() ?? $value;
         }
 
         if (!empty($errors)) {

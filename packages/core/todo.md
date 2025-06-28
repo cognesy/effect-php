@@ -20,7 +20,7 @@ Why critical: Prevents immediate execution, handles circular dependencies, and e
 
 php// Current limited approach
 try {
-    $result = Eff::runSync(
+    $result = Run::sync(
         Eff::sync(fn() => json_decode($json, true, 512, JSON_THROW_ON_ERROR))
     );
 } catch (Exception $e) {

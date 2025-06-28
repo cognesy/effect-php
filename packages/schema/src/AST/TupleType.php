@@ -34,11 +34,11 @@ final class TupleType extends BaseASTNode
         return $visitor->visitTupleType($this);
     }
 
-    public function withAnnotations(array $newAnnotations): self
+    public function withAnnotations(array $annotations): self
     {
         return new self(
             $this->elementTypes,
-            array_merge($this->annotations, $newAnnotations)
+            array_merge($this->annotations, $annotations)
         );
     }
 }

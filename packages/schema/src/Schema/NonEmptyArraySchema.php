@@ -6,6 +6,7 @@ namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\AST\NonEmptyArrayType;
 use EffectPHP\Schema\Contracts\SchemaInterface;
 use EffectPHP\Schema\Parse\ParseError;
@@ -47,14 +48,14 @@ final class NonEmptyArraySchema extends BaseSchema
         $errors = [];
 
         foreach ($input as $index => $item) {
-            $itemResult = Eff::runSafely($this->itemSchema->decode($item));
+            $itemResult = Run::syncResult($this->itemSchema->decode($item));
             
-            if ($itemResult->isLeft()) {
+            if ($itemResult->isFailure()) {
                 $errors[] = new TypeIssue('valid item', gettype($item), [(string)$index]);
                 continue;
             }
 
-            $validatedItems[$index] = $itemResult->fold(fn($e) => $item, fn($v) => $v);
+            $validatedItems[$index] = $itemResult->getValueOrNull() ?? $item;
         }
 
         if (!empty($errors)) {
@@ -85,14 +86,14 @@ final class NonEmptyArraySchema extends BaseSchema
         $errors = [];
 
         foreach ($input as $index => $item) {
-            $itemResult = Eff::runSafely($this->itemSchema->encode($item));
+            $itemResult = Run::syncResult($this->itemSchema->encode($item));
             
-            if ($itemResult->isLeft()) {
+            if ($itemResult->isFailure()) {
                 $errors[] = new TypeIssue('encodable item', gettype($item), [(string)$index]);
                 continue;
             }
 
-            $encodedItems[$index] = $itemResult->fold(fn($e) => $item, fn($v) => $v);
+            $encodedItems[$index] = $itemResult->getValueOrNull() ?? $item;
         }
 
         if (!empty($errors)) {

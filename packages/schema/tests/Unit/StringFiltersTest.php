@@ -171,7 +171,7 @@ describe('String Filter Methods', function () {
     describe('integration with helper methods', function () {
         it('works with decodeUnknownEither', function () {
             $schema = Schema::startsWith(Schema::string(), "hello");
-            $decoder = Schema::decodeUnknownEither($schema);
+            $decoder = Schema::decodeUnknownResult($schema);
             
             $validResult = $decoder("hello world");
             expect($validResult->isRight())->toBeTrue();
@@ -184,7 +184,7 @@ describe('String Filter Methods', function () {
 
         it('works with encodeEither', function () {
             $schema = Schema::trimmed(Schema::string());
-            $encoder = Schema::encodeEither($schema);
+            $encoder = Schema::encodeResult($schema);
             
             $validResult = $encoder("no spaces");
             expect($validResult->isRight())->toBeTrue();

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Layer\Layer;
 
@@ -100,7 +101,7 @@ describe('Configuration Management', function () {
                     'ttl' => $config->get('cache_ttl')
                 ]);
             
-            $result = Eff::runSync($layer->provideTo($configEffect));
+            $result = Run::sync($layer->provideTo($configEffect));
             
             expect($result['name'])->toBe('Test App')
                 ->and($result['debug'])->toBeTrue()
@@ -119,7 +120,7 @@ describe('Configuration Management', function () {
                     'has_missing' => $config->has('missing_key')
                 ]);
             
-            $result = Eff::runSync($layer->provideTo($configEffect));
+            $result = Run::sync($layer->provideTo($configEffect));
             
             expect($result['existing'])->toBe('value')
                 ->and($result['missing'])->toBe('default_value')
@@ -160,7 +161,7 @@ describe('Configuration Management', function () {
                         )
                 );
             
-            $result = Eff::runSync($configLayer->provideTo($compositeConfigEffect));
+            $result = Run::sync($configLayer->provideTo($compositeConfigEffect));
             
             expect($result['database']['host'])->toBe('localhost')
                 ->and($result['database']['port'])->toBe(5432)
@@ -197,7 +198,7 @@ describe('Configuration Management', function () {
                         ])
                 );
             
-            $result = Eff::runSync($testLayer->provideTo($environmentConfigEffect));
+            $result = Run::sync($testLayer->provideTo($environmentConfigEffect));
             
             expect($result['debug'])->toBeTrue() // Overridden
                 ->and($result['cache_ttl'])->toBe(60) // Overridden
@@ -228,7 +229,7 @@ describe('Configuration Management', function () {
                     'has_timestamp' => $config->has('loaded_at')
                 ]);
             
-            $result = Eff::runSync($dynamicConfigLayer->provideTo($configEffect));
+            $result = Run::sync($dynamicConfigLayer->provideTo($configEffect));
             
             expect($result['source'])->toBe('dynamic')
                 ->and($result['features'])->toBe(['feature_a', 'feature_b'])
@@ -254,7 +255,7 @@ describe('Configuration Management', function () {
             $configEffect = Eff::service(Config::class)
                 ->map(fn($config) => $config->get('fallback'));
             
-            $result = Eff::runSync($resilientConfigLayer->provideTo($configEffect));
+            $result = Run::sync($resilientConfigLayer->provideTo($configEffect));
             
             expect($result)->toBeTrue();
         });
@@ -292,10 +293,10 @@ describe('Configuration Management', function () {
             $validationEffect = Eff::service(Config::class)
                 ->flatMap($validateConfig);
             
-            $result = Eff::runSafely($layer->provideTo($validationEffect));
+            $result = Run::syncResult($layer->provideTo($validationEffect));
             
-            expect($result->isLeft())->toBeTrue();
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
+            expect($result->isFailure())->toBeTrue();
+            $error = $result->getErrorOrNull();
             expect($error->getMessage())->toContain('Missing required configuration: base_url');
         });
         
@@ -338,10 +339,10 @@ describe('Configuration Management', function () {
             $validationEffect = Eff::service(Config::class)
                 ->flatMap($validateAndNormalize);
             
-            $result = Eff::runSafely($layer->provideTo($validationEffect));
+            $result = Run::syncResult($layer->provideTo($validationEffect));
             
-            expect($result->isLeft())->toBeTrue();
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
+            expect($result->isFailure())->toBeTrue();
+            $error = $result->getErrorOrNull();
             expect($error->getMessage())->toContain('Timeout must be a positive number');
         });
     });
@@ -386,7 +387,7 @@ describe('Configuration Management', function () {
                     ];
                 });
             
-            $result = Eff::runSync($layer->provideTo($setupInstructorEffect));
+            $result = Run::sync($layer->provideTo($setupInstructorEffect));
             
             expect($result['active_provider'])->toBe('openai')
                 ->and($result['provider_config']['api_key'])->toBe('sk-test-openai')
@@ -456,7 +457,7 @@ describe('Configuration Management', function () {
                 }
             };
             
-            $result = Eff::runSync($configLayer->provideTo($polyglotConfigEffect()));
+            $result = Run::sync($configLayer->provideTo($polyglotConfigEffect()));
             
             expect($result['environment'])->toBe('production')
                 ->and($result['debug'])->toBeTrue() // Overridden for dev
@@ -503,7 +504,7 @@ describe('Configuration Management', function () {
                         ])
                 );
             
-            $result = Eff::runSync($secureConfigLayer->provideTo($secureSetupEffect));
+            $result = Run::sync($secureConfigLayer->provideTo($secureSetupEffect));
             
             expect($result['public_info']['name'])->toBe('MyApp')
                 ->and($result['secure_config']['has_openai_key'])->toBeTrue()
@@ -536,7 +537,7 @@ describe('Configuration Management', function () {
                     'setting_b' => $config->get('setting_b')
                 ]);
             
-            $result1 = Eff::runSync($reloadableConfigLayer->provideTo($configEffect));
+            $result1 = Run::sync($reloadableConfigLayer->provideTo($configEffect));
             
             expect($result1['version'])->toBe(1)
                 ->and($result1['setting_a'])->toBe('value_v1')
@@ -546,7 +547,7 @@ describe('Configuration Management', function () {
             $currentConfigVersion = 2;
             $reloadedConfigLayer = Layer::fromEffect($configFactory(), Config::class);
             
-            $result2 = Eff::runSync($reloadedConfigLayer->provideTo($configEffect));
+            $result2 = Run::sync($reloadedConfigLayer->provideTo($configEffect));
             
             expect($result2['version'])->toBe(2)
                 ->and($result2['setting_a'])->toBe('value_v2')

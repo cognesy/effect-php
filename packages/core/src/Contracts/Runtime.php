@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EffectPHP\Core\Contracts;
 
 use EffectPHP\Core\Either;
-use EffectPHP\Core\Result;
+use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Layer\Context;
 
 /**
@@ -86,14 +86,13 @@ interface Runtime
     // ===== Legacy APIs (for backward compatibility) =====
     
     /**
-     * Execute effect safely, returning Either for error handling
+     * Execute effect safely, returning Result for error handling
      *
      * @template A
-     * @template E of \Throwable
-     * @param Effect<never, E, A> $effect
-     * @return Either<E, A>
+     * @param Effect<never, mixed, A> $effect
+     * @return Result<A>
      */
-    public function runSafely(Effect $effect): Either;
+    public function runSafely(Effect $effect): Result;
 
     /**
      * Execute effect, throwing on failure (alias for runSync)

@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
+use EffectPHP\Schema\Schema\CollectionSchema;
 
 // Test data classes
 enum TaskStatus: string {
@@ -58,8 +59,8 @@ it('supports complete collection workflow', function () {
     ];
 
     // Decode and validate
-    $result = Eff::runSafely($projectSchema->decode($projectData));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($projectSchema->decode($projectData));
+    expect($result->isSuccess())->toBeTrue();
 
     $decoded = $result->fold(fn($e) => null, fn($v) => $v);
     expect($decoded['name'])->toBe('My Project');
@@ -81,8 +82,8 @@ it('provides collection validation errors', function () {
         'statuses' => [] // Empty when non-empty required
     ];
 
-    $result = Eff::runSafely($schema->decode($invalidData));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode($invalidData));
+    expect($result->isFailure())->toBeTrue();
 });
 
 it('supports json schema compilation', function () {
@@ -121,8 +122,8 @@ it('supports nested collections with constraints', function () {
         ['c']
     ];
 
-    $result = Eff::runSafely($schema->decode($validData));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode($validData));
+    expect($result->isSuccess())->toBeTrue();
     expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($validData);
 
     // Invalid - inner collection too large
@@ -130,8 +131,8 @@ it('supports nested collections with constraints', function () {
         ['a', 'b', 'c', 'd'] // Exceeds inner max of 3
     ];
 
-    $result = Eff::runSafely($schema->decode($invalidData));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode($invalidData));
+    expect($result->isFailure())->toBeTrue();
 });
 
 it('supports mixed collection types', function () {
@@ -143,16 +144,16 @@ it('supports mixed collection types', function () {
     $enumCollection = Schema::collection(Schema::enum(TaskStatus::class))->min(1);
 
     // Valid string collection
-    $result = Eff::runSafely($stringCollection->decode(['foo', 'bar']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($stringCollection->decode(['foo', 'bar']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Valid number collection
-    $result = Eff::runSafely($numberCollection->decode([1, 2, 3.14]));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($numberCollection->decode([1, 2, 3.14]));
+    expect($result->isSuccess())->toBeTrue();
     
     // Valid enum collection
-    $result = Eff::runSafely($enumCollection->decode(['todo', 'done']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($enumCollection->decode(['todo', 'done']));
+    expect($result->isSuccess())->toBeTrue();
     $decoded = $result->fold(fn($e) => null, fn($v) => $v);
     expect($decoded)->toBe([TaskStatus::TODO, TaskStatus::DONE]);
 });
@@ -168,8 +169,8 @@ it('encodes collections', function () {
         'priorities' => [TaskPriority::HIGH, TaskPriority::LOW]
     ];
 
-    $result = Eff::runSafely($schema->encode($data));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->encode($data));
+    expect($result->isSuccess())->toBeTrue();
 
     $encoded = $result->fold(fn($e) => null, fn($v) => $v);
     expect($encoded['statuses'])->toBe(['todo', 'done']);
@@ -190,7 +191,7 @@ it('supports expressive api', function () {
     )->length(2);
 
     // All these should be fluent and type-safe
-    expect($userTagsSchema)->toBeInstanceOf(\EffectPHP\Schema\Schema\CollectionSchema::class);
-    expect($userRolesSchema)->toBeInstanceOf(\EffectPHP\Schema\Schema\CollectionSchema::class);
-    expect($userGroupsSchema)->toBeInstanceOf(\EffectPHP\Schema\Schema\CollectionSchema::class);
+    expect($userTagsSchema)->toBeInstanceOf(CollectionSchema::class);
+    expect($userRolesSchema)->toBeInstanceOf(CollectionSchema::class);
+    expect($userGroupsSchema)->toBeInstanceOf(CollectionSchema::class);
 });

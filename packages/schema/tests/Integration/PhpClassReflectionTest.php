@@ -5,6 +5,7 @@ declare(strict_types=1);
 use EffectPHP\Schema\Metadata\UniversalSchemaReflector;
 use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 
 // Test data classes with various metadata sources
 final class SimpleUser
@@ -205,18 +206,18 @@ describe('PHP Class Reflection Integration', function () {
         
         // Use Effect directly for more detailed validation
         $decodeEffect = $schema->decode($testData);
-        $result = Eff::runSafely($decodeEffect);
+        $result = Run::syncResult($decodeEffect);
         
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
         $decoded = $result->fold(fn($e) => null, fn($v) => $v);
         expect($decoded)->toBe($testData);
         
         // Test encoding back
         $encodeEffect = $schema->encode($decoded);
-        $encodeResult = Eff::runSafely($encodeEffect);
+        $encodeResult = Run::syncResult($encodeEffect);
         
-        expect($encodeResult->isRight())->toBeTrue();
+        expect($encodeResult->isSuccess())->toBeTrue();
         
         $encoded = $encodeResult->fold(fn($e) => null, fn($v) => $v);
         expect($encoded)->toBe($testData);
@@ -278,8 +279,8 @@ describe('PHP Class Reflection Integration', function () {
         ];
         
         // 5. Validate LLM response using our schema
-        $validationResult = Eff::runSafely($schema->decode($llmResponse));
-        expect($validationResult->isRight())->toBeTrue();
+        $validationResult = Run::syncResult($schema->decode($llmResponse));
+        expect($validationResult->isSuccess())->toBeTrue();
         
         // 6. Successfully decoded data can be used to create PHP object
         $validatedData = $validationResult->fold(fn($e) => null, fn($v) => $v);

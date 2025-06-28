@@ -271,9 +271,10 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
 
     public function visitEnumType(EnumType $node): array
     {
+        /** @var class-string $enumClass */
         $enumClass = $node->getEnumClass();
         $cases = $enumClass::cases();
-        
+
         // Extract enum values for JSON Schema
         $enumValues = [];
         foreach ($cases as $case) {

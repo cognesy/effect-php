@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use EffectPHP\Schema\Schema;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Parse\ParseError;
 
 describe('Basic Schema Validation Integration', function () {
@@ -38,8 +39,8 @@ describe('Basic Schema Validation Integration', function () {
         ];
 
         // Test valid data
-        $result = Eff::runSafely($userSchema->decode($validUser));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($userSchema->decode($validUser));
+        expect($result->isSuccess())->toBeTrue();
         
         $decoded = $result->fold(fn($e) => null, fn($v) => $v);
         expect($decoded)->toBe($validUser);
@@ -56,8 +57,8 @@ describe('Basic Schema Validation Integration', function () {
             'age' => -5,    // Below minimum
         ];
 
-        $result = Eff::runSafely($schema->decode($invalidData));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode($invalidData));
+        expect($result->isFailure())->toBeTrue();
         
         $error = $result->fold(fn($e) => $e, fn($v) => null);
         expect($error)->toBeInstanceOf(ParseError::class);

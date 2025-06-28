@@ -10,8 +10,8 @@ it('can create and validate a string schema', function () {
     expect($schema->is(123))->toBeFalse();
     
     // Test using Effect directly
-    $result = Eff::runSafely($schema->decode('hello'));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode('hello'));
+    expect($result->isSuccess())->toBeTrue();
 });
 
 it('can create and validate a number schema', function () {

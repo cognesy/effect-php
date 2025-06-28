@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EffectPHP\Core\Result;
 
 use EffectPHP\Core\Cause\Cause;
+use EffectPHP\Core\Either;
 
 /**
  * Result represents the outcome of an Effect execution
@@ -93,5 +94,38 @@ abstract class Result
      * @return B
      */
     abstract public function fold(callable $onFailure, callable $onSuccess): mixed;
+    
+    /**
+     * Get the success value or null if failed
+     * Convenience method to avoid fold() for simple value access
+     * 
+     * @return A|null
+     */
+    public function getValueOrNull(): mixed
+    {
+        return $this->fold(fn($cause) => null, fn($value) => $value);
+    }
+    
+    /**
+     * Get the error or null if successful
+     * Convenience method to avoid fold() for simple error access
+     * 
+     * @return \Throwable|null
+     */
+    public function getErrorOrNull(): ?\Throwable
+    {
+        return $this->fold(fn($cause) => $cause->error, fn($value) => null);
+    }
+    
+    /**
+     * Get the cause or null if successful
+     * Convenience method to avoid fold() for simple cause access
+     * 
+     * @return Cause|null
+     */
+    public function getCauseOrNull(): ?Cause
+    {
+        return $this->fold(fn($cause) => $cause, fn($value) => null);
+    }
 }
 

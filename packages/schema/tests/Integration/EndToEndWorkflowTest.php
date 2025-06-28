@@ -6,6 +6,7 @@ use EffectPHP\Schema\Schema;
 use EffectPHP\Schema\Metadata\UniversalSchemaReflector;
 use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 
 /**
  * Example classes for end-to-end testing
@@ -111,8 +112,8 @@ describe('End-to-End Schema Workflow Integration', function () {
         ];
         
         // Step 5: Validate LLM response
-        $validationResult = Eff::runSafely($userSchema->decode($llmResponse));
-        expect($validationResult->isRight())->toBeTrue();
+        $validationResult = Run::syncResult($userSchema->decode($llmResponse));
+        expect($validationResult->isSuccess())->toBeTrue();
         
         $validatedData = $validationResult->fold(fn($e) => null, fn($v) => $v);
         expect($validatedData)->toBe($llmResponse);
@@ -167,8 +168,8 @@ describe('End-to-End Schema Workflow Integration', function () {
         ];
 
         // Validate incoming request
-        $requestResult = Eff::runSafely($apiRequestSchema->decode($apiRequest));
-        expect($requestResult->isRight())->toBeTrue();
+        $requestResult = Run::syncResult($apiRequestSchema->decode($apiRequest));
+        expect($requestResult->isSuccess())->toBeTrue();
 
         $validatedRequest = $requestResult->fold(fn($e) => null, fn($v) => $v);
 
@@ -185,8 +186,8 @@ describe('End-to-End Schema Workflow Integration', function () {
             'error' => null,
         ];
 
-        $responseResult = Eff::runSafely($responseSchema->decode($successResponse));
-        expect($responseResult->isRight())->toBeTrue();
+        $responseResult = Run::syncResult($responseSchema->decode($successResponse));
+        expect($responseResult->isSuccess())->toBeTrue();
     });
 
     it('demonstrates schema evolution and migration', function () {
@@ -231,8 +232,8 @@ describe('End-to-End Schema Workflow Integration', function () {
             'email' => 'legacy@example.com',
         ];
 
-        $migrationResult = Eff::runSafely($migrationTransform->decode($v1User));
-        expect($migrationResult->isRight())->toBeTrue();
+        $migrationResult = Run::syncResult($migrationTransform->decode($v1User));
+        expect($migrationResult->isSuccess())->toBeTrue();
 
         $v2User = $migrationResult->fold(fn($e) => null, fn($v) => $v);
         expect($v2User['name'])->toBe('Legacy User');
@@ -242,8 +243,8 @@ describe('End-to-End Schema Workflow Integration', function () {
         expect($v2User['version'])->toBe('2.0');
 
         // Test reverse migration
-        $downgradeResult = Eff::runSafely($migrationTransform->encode($v2User));
-        expect($downgradeResult->isRight())->toBeTrue();
+        $downgradeResult = Run::syncResult($migrationTransform->encode($v2User));
+        expect($downgradeResult->isSuccess())->toBeTrue();
 
         $downgradedUser = $downgradeResult->fold(fn($e) => null, fn($v) => $v);
         expect($downgradedUser)->toBe($v1User);
@@ -310,10 +311,10 @@ describe('End-to-End Schema Workflow Integration', function () {
 
         // This tests parallel validation of nested arrays and objects
         $startTime = microtime(true);
-        $result = Eff::runSafely($organizationSchema->decode($organizationData));
+        $result = Run::syncResult($organizationSchema->decode($organizationData));
         $endTime = microtime(true);
 
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
 
         $validated = $result->fold(fn($e) => null, fn($v) => $v);
         expect($validated['info']['name'])->toBe('TechCorp Inc.');
@@ -373,8 +374,8 @@ describe('End-to-End Schema Workflow Integration', function () {
             // Missing required 'config' field
         ];
 
-        $result = Eff::runSafely($complexSchema->decode($invalidData));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($complexSchema->decode($invalidData));
+        expect($result->isFailure())->toBeTrue();
 
         $error = $result->fold(fn($e) => $e, fn($v) => null);
         expect($error)->toBeInstanceOf(\EffectPHP\Schema\Parse\ParseError::class);

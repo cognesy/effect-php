@@ -16,7 +16,7 @@ final class TypeHintExtractor implements MetadataExtractorInterface
         }
 
         $type = $property->getType();
-        $nullable = $type->allowsNull();
+        $nullable = $type?->allowsNull();
         $optional = $nullable || $property->hasDefaultValue();
 
         if ($type instanceof ReflectionNamedType) {

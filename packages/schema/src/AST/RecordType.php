@@ -37,12 +37,12 @@ final class RecordType extends BaseASTNode
         return $visitor->visitRecordType($this);
     }
 
-    public function withAnnotations(array $newAnnotations): self
+    public function withAnnotations(array $annotations): self
     {
         return new self(
             $this->keyType,
             $this->valueType,
-            array_merge($this->annotations, $newAnnotations)
+            array_merge($this->annotations, $annotations)
         );
     }
 }

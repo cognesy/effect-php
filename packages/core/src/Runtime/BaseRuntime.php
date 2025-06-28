@@ -10,6 +10,7 @@ use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Effects\FailureEffect;
 use EffectPHP\Core\Effects\SuccessEffect;
 use EffectPHP\Core\Either;
+use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Runtime\Internal\RuntimeConfig;
 
@@ -47,13 +48,13 @@ abstract class BaseRuntime implements Runtime
         return $this->config;
     }
 
-    public function runSafely(Effect $effect): Either
+    public function runSafely(Effect $effect): Result
     {
         try {
             $result = $this->run($effect);
-            return Either::right($result);
+            return Result::succeed($result);
         } catch (\Throwable $e) {
-            return Either::left($e);
+            return Result::die($e);
         }
     }
 

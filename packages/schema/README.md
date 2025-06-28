@@ -24,7 +24,7 @@ use EffectPHP\Schema\Schema;
 
 // Basic string validation
 $schema = Schema::string();
-$result = Eff::runSafely($schema->decode('hello world'));
+$result = Run::syncResult($schema->decode('hello world'));
 // Result: Right('hello world')
 
 // Object validation with required fields
@@ -42,7 +42,7 @@ $userData = [
     'created_at' => '2023-12-25T15:30:00+00:00'
 ];
 
-$result = Eff::runSafely($userSchema->decode($userData));
+$result = Run::syncResult($userSchema->decode($userData));
 // Result: Right with validated data and DateTime object
 ```
 
@@ -131,11 +131,11 @@ Schemas support bidirectional transformations between different data representat
 $dateSchema = Schema::date();
 
 // Decode: string -> DateTime
-$result = Eff::runSafely($dateSchema->decode('2023-12-25'));
+$result = Run::syncResult($dateSchema->decode('2023-12-25'));
 $date = $result->fold(fn($e) => null, fn($v) => $v); // DateTime object
 
 // Encode: DateTime -> string
-$result = Eff::runSafely($dateSchema->encode($date));
+$result = Run::syncResult($dateSchema->encode($date));
 $dateString = $result->fold(fn($e) => null, fn($v) => $v); // '2023-12-25'
 
 // Custom transformations
@@ -157,12 +157,12 @@ $schema = Schema::object([
     'age' => Schema::min(Schema::number(), 0),
 ], ['email', 'age']);
 
-$result = Eff::runSafely($schema->decode([
+$result = Run::syncResult($schema->decode([
     'email' => 'invalid-email',
     'age' => -5
 ]));
 
-if ($result->isLeft()) {
+if ($result->isFailure()) {
     $error = $result->fold(fn($e) => $e, fn($v) => null);
     // ParseError with detailed issue information
     foreach ($error->getIssues() as $issue) {

@@ -23,8 +23,8 @@ describe('Any Schema', function () {
         $values = ['string', 42, true, null, ['array'], (object)['key' => 'value']];
         
         foreach ($values as $value) {
-            $result = Eff::runSafely($schema->decode($value));
-            expect($result->isRight())->toBeTrue();
+            $result = Run::syncResult($schema->decode($value));
+            expect($result->isSuccess())->toBeTrue();
             expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($value);
         }
     });
@@ -35,16 +35,16 @@ describe('Mixed Schema', function () {
         $schema = Schema::mixed();
         
         // String
-        $result = Eff::runSafely($schema->decode('hello'));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode('hello'));
+        expect($result->isSuccess())->toBeTrue();
         
         // Number
-        $result = Eff::runSafely($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(42));
+        expect($result->isSuccess())->toBeTrue();
         
         // Boolean
-        $result = Eff::runSafely($schema->decode(true));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(true));
+        expect($result->isSuccess())->toBeTrue();
     });
 });
 
@@ -53,36 +53,36 @@ describe('Union Schema', function () {
         $schema = Schema::union([Schema::string(), Schema::number()]);
         
         // Valid string
-        $result = Eff::runSafely($schema->decode('hello'));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode('hello'));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe('hello');
         
         // Valid number
-        $result = Eff::runSafely($schema->decode(42));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(42));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(42);
         
         // Invalid boolean
-        $result = Eff::runSafely($schema->decode(true));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(true));
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('nullable string', function () {
         $schema = Schema::nullOr(Schema::string());
         
         // Valid string
-        $result = Eff::runSafely($schema->decode('hello'));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode('hello'));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe('hello');
         
         // Valid null
-        $result = Eff::runSafely($schema->decode(null));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(null));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(null);
         
         // Invalid number
-        $result = Eff::runSafely($schema->decode(42));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(42));
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('multiple literal union', function () {
@@ -92,14 +92,14 @@ describe('Union Schema', function () {
             Schema::literal('maybe')
         ]);
         
-        $result = Eff::runSafely($schema->decode('yes'));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode('yes'));
+        expect($result->isSuccess())->toBeTrue();
         
-        $result = Eff::runSafely($schema->decode('no'));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode('no'));
+        expect($result->isSuccess())->toBeTrue();
         
-        $result = Eff::runSafely($schema->decode('definitely'));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode('definitely'));
+        expect($result->isFailure())->toBeTrue();
     });
 });
 
@@ -111,8 +111,8 @@ describe('Object Schema', function () {
         ], ['name', 'age']);
         
         $data = ['name' => 'John', 'age' => 30];
-        $result = Eff::runSafely($schema->decode($data));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($data));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($data);
     });
 
@@ -123,16 +123,16 @@ describe('Object Schema', function () {
         ], ['name']); // email is optional
         
         // With optional field
-        $result = Eff::runSafely($schema->decode(['name' => 'John', 'email' => 'john@example.com']));
+        $result = Run::syncResult($schema->decode(['name' => 'John', 'email' => 'john@example.com']));
         expect($result->isRight())->toBeTrue();
         
         // Without optional field
-        $result = Eff::runSafely($schema->decode(['name' => 'John']));
+        $result = Run::syncResult($schema->decode(['name' => 'John']));
         expect($result->isRight())->toBeTrue();
         
         // Missing required field
-        $result = Eff::runSafely($schema->decode(['email' => 'john@example.com']));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['email' => 'john@example.com']));
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('nested object', function () {
@@ -154,7 +154,7 @@ describe('Object Schema', function () {
             ]
         ];
         
-        $result = Eff::runSafely($personSchema->decode($data));
+        $result = Run::syncResult($personSchema->decode($data));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($data);
     });
@@ -165,7 +165,7 @@ describe('Record Schema', function () {
         $schema = Schema::record(Schema::string(), Schema::string());
         
         $data = ['en' => 'Hello', 'es' => 'Hola', 'fr' => 'Bonjour'];
-        $result = Eff::runSafely($schema->decode($data));
+        $result = Run::syncResult($schema->decode($data));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($data);
     });
@@ -174,12 +174,12 @@ describe('Record Schema', function () {
         $schema = Schema::record(Schema::string(), Schema::number());
         
         $data = ['apple' => 5, 'banana' => 3, 'orange' => 8];
-        $result = Eff::runSafely($schema->decode($data));
+        $result = Run::syncResult($schema->decode($data));
         expect($result->isRight())->toBeTrue();
         
         // Invalid value type
-        $result = Eff::runSafely($schema->decode(['apple' => 'five']));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['apple' => 'five']));
+        expect($result->isFailure())->toBeTrue();
     });
 });
 
@@ -193,12 +193,12 @@ describe('Transformation Schema', function () {
         );
         
         // Decode: string becomes number
-        $result = Eff::runSafely($schema->decode('42.5'));
+        $result = Run::syncResult($schema->decode('42.5'));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(42.5);
         
         // Encode: number becomes string
-        $result = Eff::runSafely($schema->encode(42.5));
+        $result = Run::syncResult($schema->encode(42.5));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe('42.5');
     });
@@ -209,23 +209,23 @@ describe('Tuple Schema', function () {
     test('fixed tuple', function () {
         $schema = Schema::tuple(Schema::string(), Schema::number(), Schema::boolean());
         
-        $result = Eff::runSafely($schema->decode(['hello', 42, true]));
+        $result = Run::syncResult($schema->decode(['hello', 42, true]));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['hello', 42, true]);
         
         // Wrong length
-        $result = Eff::runSafely($schema->decode(['hello', 42]));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['hello', 42]));
+        expect($result->isFailure())->toBeTrue();
         
         // Wrong type
-        $result = Eff::runSafely($schema->decode(['hello', 'not a number', true]));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['hello', 'not a number', true]));
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('coordinate tuple', function () {
         $coordinateSchema = Schema::tuple(Schema::number(), Schema::number());
         
-        $result = Eff::runSafely($coordinateSchema->decode([10.5, 20.3]));
+        $result = Run::syncResult($coordinateSchema->decode([10.5, 20.3]));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([10.5, 20.3]);
     });
@@ -240,12 +240,12 @@ describe('Complex Mixed Types', function () {
         ]);
         
         // Literal case
-        $result = Eff::runSafely($schema->decode('anonymous'));
+        $result = Run::syncResult($schema->decode('anonymous'));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe('anonymous');
         
         // Object case
-        $result = Eff::runSafely($schema->decode(['name' => 'John']));
+        $result = Run::syncResult($schema->decode(['name' => 'John']));
         expect($result->isRight())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['name' => 'John']);
     });
@@ -257,16 +257,16 @@ describe('Complex Mixed Types', function () {
         ], ['id', 'active']);
         
         // String ID
-        $result = Eff::runSafely($schema->decode(['id' => 'abc123', 'active' => true]));
+        $result = Run::syncResult($schema->decode(['id' => 'abc123', 'active' => true]));
         expect($result->isRight())->toBeTrue();
         
         // Number ID
-        $result = Eff::runSafely($schema->decode(['id' => 123, 'active' => false]));
+        $result = Run::syncResult($schema->decode(['id' => 123, 'active' => false]));
         expect($result->isRight())->toBeTrue();
         
         // Invalid ID type
-        $result = Eff::runSafely($schema->decode(['id' => true, 'active' => true]));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['id' => true, 'active' => true]));
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('nullable nested object', function () {
@@ -281,21 +281,21 @@ describe('Complex Mixed Types', function () {
         ], ['name']);
         
         // With profile
-        $result = Eff::runSafely($userSchema->decode([
+        $result = Run::syncResult($userSchema->decode([
             'name' => 'John',
             'profile' => ['bio' => 'Software developer', 'website' => 'john.dev']
         ]));
         expect($result->isRight())->toBeTrue();
         
         // Without profile (null)
-        $result = Eff::runSafely($userSchema->decode([
+        $result = Run::syncResult($userSchema->decode([
             'name' => 'John',
             'profile' => null
         ]));
         expect($result->isRight())->toBeTrue();
         
         // Missing profile field (should default to null handling)
-        $result = Eff::runSafely($userSchema->decode(['name' => 'John']));
+        $result = Run::syncResult($userSchema->decode(['name' => 'John']));
         expect($result->isRight())->toBeTrue();
     });
 });

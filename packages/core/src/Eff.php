@@ -9,6 +9,7 @@ use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Contracts\FiberHandle;
 use EffectPHP\Core\Contracts\Promise;
 use EffectPHP\Core\Exceptions\ServiceNotFoundException;
+use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Effects\AsyncPromiseEffect;
 use EffectPHP\Core\Effects\FailureEffect;
 use EffectPHP\Core\Effects\NeverEffect;
@@ -26,7 +27,7 @@ use EffectPHP\Core\Exceptions\UnknownException;
 use Throwable;
 
 /**
- * Effect factory with superior DX and natural language
+ * Effect factory
  */
 final class Eff
 {
@@ -398,14 +399,13 @@ final class Eff
     /**
      * Execute effect safely using default runtime
      * 
-     * Returns Either<Error, Success> for safe error handling
+     * Returns Result<A> for safe error handling
      *
      * @template A
-     * @template E
-     * @param Effect<never, E, A> $effect
-     * @return Either<E, A>
+     * @param Effect<never, mixed, A> $effect
+     * @return Result<A>
      */
-    public static function runSafely(Effect $effect): Either
+    public static function runSafely(Effect $effect): Result
     {
         return RuntimeManager::default()->runSafely($effect);
     }

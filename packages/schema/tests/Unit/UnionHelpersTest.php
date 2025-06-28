@@ -83,7 +83,7 @@ describe('Union Helper Methods', function () {
     describe('integration with helper methods', function () {
         it('works with decodeUnknownEither', function () {
             $schema = Schema::nullOr(Schema::string());
-            $decoder = Schema::decodeUnknownEither($schema);
+            $decoder = Schema::decodeUnknownResult($schema);
             
             $validResult = $decoder(null);
             expect($validResult->isRight())->toBeTrue();
@@ -101,7 +101,7 @@ describe('Union Helper Methods', function () {
 
         it('works with encodeEither', function () {
             $schema = Schema::nullOr(Schema::string());
-            $encoder = Schema::encodeEither($schema);
+            $encoder = Schema::encodeResult($schema);
             
             $nullResult = $encoder(null);
             expect($nullResult->isRight())->toBeTrue();

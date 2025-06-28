@@ -32,7 +32,7 @@ it('returns Right for valid input with decodeUnknownEither', function () {
     $stringSchema = Schema::string();
     $validString = "Hello World";
     
-    $decoder = Schema::decodeUnknownEither($stringSchema);
+    $decoder = Schema::decodeUnknownResult($stringSchema);
     $result = $decoder($validString);
     
     expect($result->isRight())->toBeTrue();
@@ -44,7 +44,7 @@ it('returns Left for invalid input with decodeUnknownEither', function () {
     $stringSchema = Schema::string();
     $invalidInput = 123;
     
-    $decoder = Schema::decodeUnknownEither($stringSchema);
+    $decoder = Schema::decodeUnknownResult($stringSchema);
     $result = $decoder($invalidInput);
     
     expect($result->isLeft())->toBeTrue();
@@ -64,7 +64,7 @@ it('returns Right for valid encoding with encodeEither', function () {
     $stringSchema = Schema::string();
     $validString = "Hello World";
     
-    $encoder = Schema::encodeEither($stringSchema);
+    $encoder = Schema::encodeResult($stringSchema);
     $result = $encoder($validString);
     
     expect($result->isRight())->toBeTrue();
@@ -115,7 +115,7 @@ it('works with record schemas', function () {
         'active' => true
     ];
 
-    $decoder = Schema::decodeUnknownEither($recordSchema);
+    $decoder = Schema::decodeUnknownResult($recordSchema);
     $result = $decoder($testData);
     
     expect($result->isRight())->toBeTrue();
@@ -126,7 +126,7 @@ it('works with record schemas', function () {
 it('works with union schemas', function () {
     $unionSchema = Schema::union([Schema::string(), Schema::number()]);
     
-    $decoder = Schema::decodeUnknownEither($unionSchema);
+    $decoder = Schema::decodeUnknownResult($unionSchema);
     
     $stringResult = $decoder("hello");
     expect($stringResult->isRight())->toBeTrue();

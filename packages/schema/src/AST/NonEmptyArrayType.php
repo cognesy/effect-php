@@ -27,11 +27,11 @@ final class NonEmptyArrayType extends BaseASTNode
         return $visitor->visitNonEmptyArrayType($this);
     }
 
-    public function withAnnotations(array $newAnnotations): self
+    public function withAnnotations(array $annotations): self
     {
         return new self(
             $this->itemType,
-            array_merge($this->annotations, $newAnnotations)
+            array_merge($this->annotations, $annotations)
         );
     }
 }

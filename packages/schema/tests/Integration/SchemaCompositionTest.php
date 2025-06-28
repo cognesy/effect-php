@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use EffectPHP\Schema\Schema;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 
 describe('Schema Composition and Extension Integration', function () {
     
@@ -307,15 +308,15 @@ describe('Schema Composition and Extension Integration', function () {
         ];
 
         // Test using Effect directly
-        $result = Eff::runSafely($fullUserSchema->decode($userData));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($fullUserSchema->decode($userData));
+        expect($result->isSuccess())->toBeTrue();
 
         $decoded = $result->fold(fn($e) => null, fn($v) => $v);
         expect($decoded)->toBe($userData);
 
         // Test encoding
-        $encodeResult = Eff::runSafely($fullUserSchema->encode($decoded));
-        expect($encodeResult->isRight())->toBeTrue();
+        $encodeResult = Run::syncResult($fullUserSchema->encode($decoded));
+        expect($encodeResult->isSuccess())->toBeTrue();
 
         $encoded = $encodeResult->fold(fn($e) => null, fn($v) => $v);
         expect($encoded)->toBe($userData);

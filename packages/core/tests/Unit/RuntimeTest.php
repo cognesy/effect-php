@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Core\Exceptions\ServiceNotFoundException;
 use EffectPHP\Core\Layer\Context;
+use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Runtime\RuntimeManager;
 
 describe('Runtime', function () {
@@ -32,22 +34,22 @@ describe('Runtime', function () {
         it('returns Right for successful effects', function () {
             $effect = Eff::succeed(42);
             
-            $result = Eff::runSafely($effect);
+            $result = Run::syncResult($effect);
             
-            expect($result)->toBeEither()
-                ->and($result->isRight())->toBeTrue()
-                ->and($result->fold(fn($l) => null, fn($r) => $r))->toBe(42);
+            expect($result)->toBeInstanceOf(Result::class)
+                ->and($result->isSuccess())->toBeTrue()
+                ->and($result->fold(fn($cause) => null, fn($r) => $r))->toBe(42);
         });
         
         it('returns Left for failed effects', function () {
             $effect = Eff::fail(new \RuntimeException('Test error'));
             
-            $result = Eff::runSafely($effect);
+            $result = Run::syncResult($effect);
             
-            expect($result)->toBeEither()
-                ->and($result->isLeft())->toBeTrue();
+            expect($result)->toBeInstanceOf(Result::class)
+                ->and($result->isFailure())->toBeTrue();
             
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
+            $error = $result->fold(fn($cause) => $cause->error, fn($r) => null);
             expect($error)->toBeInstanceOf(\RuntimeException::class)
                 ->and($error->getMessage())->toBe('Test error');
         });
@@ -55,19 +57,19 @@ describe('Runtime', function () {
         it('handles synchronous computations safely', function () {
             $effect = Eff::sync(fn() => 21 * 2);
             
-            $result = Eff::runSafely($effect);
+            $result = Run::syncResult($effect);
             
-            expect($result->isRight())->toBeTrue()
-                ->and($result->fold(fn($l) => null, fn($r) => $r))->toBe(42);
+            expect($result->isSuccess())->toBeTrue()
+                ->and($result->fold(fn($cause) => null, fn($r) => $r))->toBe(42);
         });
         
         it('catches exceptions in synchronous computations', function () {
             $effect = Eff::sync(fn() => throw new \LogicException('Sync error'));
             
-            $result = Eff::runSafely($effect);
+            $result = Run::syncResult($effect);
             
-            expect($result->isLeft())->toBeTrue();
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
+            expect($result->isFailure())->toBeTrue();
+            $error = $result->fold(fn($cause) => $cause->error, fn($r) => null);
             expect($error)->toBeInstanceOf(\LogicException::class);
         });
     });
@@ -76,7 +78,7 @@ describe('Runtime', function () {
         it('executes successful effects', function () {
             $effect = Eff::succeed('hello world');
             
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             
             expect($result)->toBe('hello world');
         });
@@ -84,7 +86,7 @@ describe('Runtime', function () {
         it('throws exceptions for failed effects', function () {
             $effect = Eff::fail(new \RuntimeException('Test error'));
             
-            expect(fn() => Eff::runSync($effect))
+            expect(fn() => Run::sync($effect))
                 ->toThrow(\RuntimeException::class, 'Test error');
         });
         
@@ -94,7 +96,7 @@ describe('Runtime', function () {
                 ->flatMap(fn($x) => Eff::succeed($x + 10))
                 ->map(fn($x) => "Result: $x");
             
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             
             expect($result)->toBe('Result: 20');
         });
@@ -105,7 +107,7 @@ describe('Runtime', function () {
                 ->flatMap(fn($x) => Eff::succeed($x * 3))
                 ->flatMap(fn($x) => Eff::succeed($x - 1));
             
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             
             expect($result)->toBe(5); // ((1 + 1) * 3) - 1 = 5
         });
@@ -118,7 +120,7 @@ describe('Runtime', function () {
                 $effect = $effect->flatMap(fn($x) => Eff::succeed($x + 1));
             }
             
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             
             expect($result)->toBe(10000);
         });
@@ -129,7 +131,7 @@ describe('Runtime', function () {
                 $effect = $effect->map(fn($x) => $x + 1);
             }
             
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             
             expect($result)->toBe(10000);
         });
@@ -141,7 +143,7 @@ describe('Runtime', function () {
                     : Eff::succeed($n)->flatMap(fn($x) => $countdown($x - 1));
             };
             
-            $result = Eff::runSync($countdown(1000));
+            $result = Run::sync($countdown(1000));
             
             expect($result)->toBe('done');
         });
@@ -165,7 +167,7 @@ describe('Runtime', function () {
         it('throws exception for missing services', function () {
             $effect = Eff::service('NonExistentService');
             
-            expect(fn() => Eff::runSync($effect))
+            expect(fn() => Run::sync($effect))
                 ->toThrow(ServiceNotFoundException::class);
         });
     });
@@ -179,7 +181,7 @@ describe('Runtime', function () {
             ];
             
             $parallel = Eff::allInParallel($effects);
-            $result = Eff::runSync($parallel);
+            $result = Run::sync($parallel);
             
             expect($result)->toBe([1, 2, 3]);
         });
@@ -193,7 +195,7 @@ describe('Runtime', function () {
             
             $parallel = Eff::allInParallel($effects);
             
-            expect(fn() => Eff::runSync($parallel))
+            expect(fn() => Run::sync($parallel))
                 ->toThrow(\RuntimeException::class, 'Parallel error');
         });
     });
@@ -204,7 +206,7 @@ describe('Runtime', function () {
                 ->flatMap(fn($x) => Eff::fail(new \LogicException('Chain error')))
                 ->map(fn($x) => $x * 2); // This should not execute
             
-            expect(fn() => Eff::runSync($effect))
+            expect(fn() => Run::sync($effect))
                 ->toThrow(\LogicException::class, 'Chain error');
         });
         
@@ -216,7 +218,7 @@ describe('Runtime', function () {
                 ->flatMap(fn($x) => Eff::succeed($x + 1));
             
             try {
-                Eff::runSync($effect);
+                Run::sync($effect);
                 expect(false)->toBeTrue('Should have thrown exception');
             } catch (\RuntimeException $e) {
                 expect($e)->toBe($originalError)

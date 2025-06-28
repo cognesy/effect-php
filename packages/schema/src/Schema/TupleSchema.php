@@ -6,6 +6,7 @@ namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\AST\TupleType;
 use EffectPHP\Schema\Contracts\SchemaInterface;
 use EffectPHP\Schema\Parse\ParseError;
@@ -64,14 +65,14 @@ final class TupleSchema extends BaseSchema
 
         foreach ($this->elementSchemas as $index => $elementSchema) {
             $element = $input[$index];
-            $elementResult = Eff::runSafely($elementSchema->decode($element));
+            $elementResult = Run::syncResult($elementSchema->decode($element));
             
-            if ($elementResult->isLeft()) {
+            if ($elementResult->isFailure()) {
                 $errors[] = new TypeIssue('valid element', gettype($element), [(string)$index]);
                 continue;
             }
 
-            $validatedElements[] = $elementResult->fold(fn($e) => $element, fn($v) => $v);
+            $validatedElements[] = $elementResult->getValueOrNull() ?? $element;
         }
 
         if (!empty($errors)) {
@@ -106,14 +107,14 @@ final class TupleSchema extends BaseSchema
 
         foreach ($this->elementSchemas as $index => $elementSchema) {
             $element = $input[$index];
-            $elementResult = Eff::runSafely($elementSchema->encode($element));
+            $elementResult = Run::syncResult($elementSchema->encode($element));
             
-            if ($elementResult->isLeft()) {
+            if ($elementResult->isFailure()) {
                 $errors[] = new TypeIssue('encodable element', gettype($element), [(string)$index]);
                 continue;
             }
 
-            $encodedElements[] = $elementResult->fold(fn($e) => $element, fn($v) => $v);
+            $encodedElements[] = $elementResult->getValueOrNull() ?? $element;
         }
 
         if (!empty($errors)) {

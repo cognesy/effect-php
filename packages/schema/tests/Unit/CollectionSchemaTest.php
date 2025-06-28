@@ -9,105 +9,105 @@ use EffectPHP\Schema\Schema\CollectionSchema;
 test('basic collection validation', function () {
     $schema = Schema::collection(Schema::string());
     
-    $result = Eff::runSafely($schema->decode(['foo', 'bar', 'baz']));
+    $result = Run::syncResult($schema->decode(['foo', 'bar', 'baz']));
     
-    expect($result->isRight())->toBeTrue();
+    expect($result->isSuccess())->toBeTrue();
     expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['foo', 'bar', 'baz']);
 });
 
 test('collection with invalid input type', function () {
     $schema = Schema::collection(Schema::string());
     
-    $result = Eff::runSafely($schema->decode('not an array'));
+    $result = Run::syncResult($schema->decode('not an array'));
     
-    expect($result->isLeft())->toBeTrue();
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('collection with invalid item types', function () {
     $schema = Schema::collection(Schema::string());
     
-    $result = Eff::runSafely($schema->decode(['foo', 123, 'baz']));
+    $result = Run::syncResult($schema->decode(['foo', 123, 'baz']));
     
-    expect($result->isLeft())->toBeTrue();
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('non empty constraint', function () {
     $schema = Schema::collection(Schema::string())->nonEmpty();
     
     // Valid non-empty array
-    $result = Eff::runSafely($schema->decode(['foo']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Invalid empty array
-    $result = Eff::runSafely($schema->decode([]));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode([]));
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('min constraint', function () {
     $schema = Schema::collection(Schema::string())->min(2);
     
     // Valid - meets minimum
-    $result = Eff::runSafely($schema->decode(['foo', 'bar']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Valid - exceeds minimum
-    $result = Eff::runSafely($schema->decode(['foo', 'bar', 'baz']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar', 'baz']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Invalid - below minimum
-    $result = Eff::runSafely($schema->decode(['foo']));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo']));
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('max constraint', function () {
     $schema = Schema::collection(Schema::string())->max(2);
     
     // Valid - meets maximum
-    $result = Eff::runSafely($schema->decode(['foo', 'bar']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Valid - below maximum
-    $result = Eff::runSafely($schema->decode(['foo']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Invalid - exceeds maximum
-    $result = Eff::runSafely($schema->decode(['foo', 'bar', 'baz']));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar', 'baz']));
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('length constraint', function () {
     $schema = Schema::collection(Schema::string())->length(2);
     
     // Valid - exact length
-    $result = Eff::runSafely($schema->decode(['foo', 'bar']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Invalid - too short
-    $result = Eff::runSafely($schema->decode(['foo']));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo']));
+    expect($result->isFailure())->toBeTrue();
     
     // Invalid - too long
-    $result = Eff::runSafely($schema->decode(['foo', 'bar', 'baz']));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar', 'baz']));
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('between constraint', function () {
     $schema = Schema::collection(Schema::string())->between(2, 4);
     
     // Valid - within range
-    $result = Eff::runSafely($schema->decode(['foo', 'bar']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar']));
+    expect($result->isSuccess())->toBeTrue();
     
-    $result = Eff::runSafely($schema->decode(['foo', 'bar', 'baz', 'qux']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar', 'baz', 'qux']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Invalid - below range
-    $result = Eff::runSafely($schema->decode(['foo']));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo']));
+    expect($result->isFailure())->toBeTrue();
     
     // Invalid - above range
-    $result = Eff::runSafely($schema->decode(['foo', 'bar', 'baz', 'qux', 'quux']));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar', 'baz', 'qux', 'quux']));
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('fluent chaining', function () {
@@ -116,16 +116,16 @@ test('fluent chaining', function () {
         ->max(5);
     
     // Valid
-    $result = Eff::runSafely($schema->decode(['foo', 'bar']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['foo', 'bar']));
+    expect($result->isSuccess())->toBeTrue();
     
     // Invalid - empty
-    $result = Eff::runSafely($schema->decode([]));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode([]));
+    expect($result->isFailure())->toBeTrue();
     
     // Invalid - too many items
-    $result = Eff::runSafely($schema->decode(['a', 'b', 'c', 'd', 'e', 'f']));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->decode(['a', 'b', 'c', 'd', 'e', 'f']));
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('nested collections', function () {
@@ -134,35 +134,35 @@ test('nested collections', function () {
     );
     
     // Valid nested array
-    $result = Eff::runSafely($schema->decode([
+    $result = Run::syncResult($schema->decode([
         ['foo', 'bar'],
         ['baz']
     ]));
-    expect($result->isRight())->toBeTrue();
+    expect($result->isSuccess())->toBeTrue();
     
     // Invalid - empty nested array
-    $result = Eff::runSafely($schema->decode([
+    $result = Run::syncResult($schema->decode([
         ['foo', 'bar'],
         []
     ]));
-    expect($result->isLeft())->toBeTrue();
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('encoding', function () {
     $schema = Schema::collection(Schema::string())->min(1);
     
     // Valid encoding
-    $result = Eff::runSafely($schema->encode(['foo', 'bar']));
-    expect($result->isRight())->toBeTrue();
+    $result = Run::syncResult($schema->encode(['foo', 'bar']));
+    expect($result->isSuccess())->toBeTrue();
     expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['foo', 'bar']);
     
     // Invalid encoding - wrong type
-    $result = Eff::runSafely($schema->encode('not an array'));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->encode('not an array'));
+    expect($result->isFailure())->toBeTrue();
     
     // Invalid encoding - violates constraints
-    $result = Eff::runSafely($schema->encode([]));
-    expect($result->isLeft())->toBeTrue();
+    $result = Run::syncResult($schema->encode([]));
+    expect($result->isFailure())->toBeTrue();
 });
 
 test('returns collection schema instance', function () {

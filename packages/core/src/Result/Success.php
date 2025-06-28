@@ -31,7 +31,7 @@ final class Success extends Result
 
     public function map(callable $mapper): Result
     {
-        return new \EffectPHP\Core\Success($mapper($this->value));
+        return new Success($mapper($this->value));
     }
 
     public function flatMap(callable $mapper): Result
@@ -47,6 +47,17 @@ final class Success extends Result
     public function fold(callable $onFailure, callable $onSuccess): mixed
     {
         return $onSuccess($this->value);
+    }
+    
+    /**
+     * Get the success value directly
+     * Safe to call since this is a Success instance
+     * 
+     * @return A
+     */
+    public function getValue(): mixed
+    {
+        return $this->value;
     }
 }
 

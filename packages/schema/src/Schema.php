@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace EffectPHP\Schema;
 
-use EffectPHP\Core\Eff;
-use EffectPHP\Core\Either;
+use EffectPHP\Core\Result\Result;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Contracts\SchemaInterface;
 use EffectPHP\Schema\Schema\AnySchema;
 use EffectPHP\Schema\Schema\ArraySchema;
@@ -344,7 +344,7 @@ final class Schema
     public static function decodeUnknownSync(SchemaInterface $schema): callable
     {
         return function (mixed $input) use ($schema) {
-            return Eff::runSync($schema->decode($input));
+            return Run::sync($schema->decode($input));
         };
     }
 
@@ -353,12 +353,12 @@ final class Schema
      * 
      * @template A
      * @param SchemaInterface $schema
-     * @return callable(mixed): Either<\Throwable, A>
+     * @return callable(mixed): Result<\Throwable, A>
      */
-    public static function decodeUnknownEither(SchemaInterface $schema): callable
+    public static function decodeUnknownResult(SchemaInterface $schema): callable
     {
-        return function (mixed $input) use ($schema): Either {
-            return Eff::runSafely($schema->decode($input));
+        return function (mixed $input) use ($schema): Result {
+            return Run::syncResult($schema->decode($input));
         };
     }
 
@@ -373,21 +373,21 @@ final class Schema
     public static function encodeSync(SchemaInterface $schema): callable
     {
         return function (mixed $value) use ($schema) {
-            return Eff::runSync($schema->encode($value));
+            return Run::sync($schema->encode($value));
         };
     }
 
     /**
-     * Encode value returning Either - no exceptions
+     * Encode value returning Result - no exceptions
      * 
      * @template I
      * @param SchemaInterface $schema
-     * @return callable(mixed): Either<\Throwable, I>
+     * @return callable(mixed): Result<\Throwable, I>
      */
-    public static function encodeEither(SchemaInterface $schema): callable
+    public static function encodeResult(SchemaInterface $schema): callable
     {
-        return function (mixed $value) use ($schema): Either {
-            return Eff::runSafely($schema->encode($value));
+        return function (mixed $value) use ($schema): Result {
+            return Run::syncResult($schema->encode($value));
         };
     }
 

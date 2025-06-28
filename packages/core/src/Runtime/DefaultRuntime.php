@@ -16,7 +16,7 @@ use EffectPHP\Core\Effects\FailureEffect;
 use EffectPHP\Core\Effects\ProvideContextEffect;
 use EffectPHP\Core\Effects\SuccessEffect;
 use EffectPHP\Core\Either;
-use EffectPHP\Core\Result;
+use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Promise\Adapters\SyncPromiseAdapter;
 use EffectPHP\Core\Runtime\Handlers\AsyncPromiseEffectHandler;
@@ -162,15 +162,15 @@ final class DefaultRuntime implements Runtime
      * @template A
      * @template E of Throwable
      * @param \EffectPHP\Core\Contracts\Effect<never, E, A> $effect
-     * @return Either<E, A>
+     * @return Result<A>
      */
-    public function runSafely(Effect $effect): Either
+    public function runSafely(Effect $effect): Result
     {
         try {
             $result = $this->unsafeRun($effect);
-            return Either::right($result);
+            return Result::succeed($result);
         } catch (Throwable $e) {
-            return Either::left($e);
+            return Result::die($e);
         }
     }
 

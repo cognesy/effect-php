@@ -8,7 +8,7 @@ use EffectPHP\Core\Contracts\Effect;
 use Throwable;
 
 /**
- * Option monad with superior ergonomics
+ * Option monad
  *
  * @template A
  * @psalm-immutable

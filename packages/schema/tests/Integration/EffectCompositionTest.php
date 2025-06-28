@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use EffectPHP\Schema\Schema;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Schema\Parse\ParseError;
 
 describe('Effect Composition and Error Handling Integration', function () {
@@ -35,11 +36,11 @@ describe('Effect Composition and Error Handling Integration', function () {
         $validInput = ['email' => 'user@example.com', 'password' => 'securepassword123'];
         
         $effect = $hashingSchema->decode($validInput);
-        $result = Eff::runSafely($effect);
+        $result = Run::syncResult($effect);
         
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
-        $processed = $result->fold(fn($e) => null, fn($v) => $v);
+        $processed = $result->getValueOrNull();
         expect($processed)->toHaveKey('email', 'user@example.com');
         expect($processed)->toHaveKey('passwordHash');
         expect($processed['passwordHash'])->toBeString();
@@ -74,11 +75,11 @@ describe('Effect Composition and Error Handling Integration', function () {
             ]
         ];
 
-        $result = Eff::runSafely($complexSchema->decode($invalidData));
+        $result = Run::syncResult($complexSchema->decode($invalidData));
         
-        expect($result->isLeft())->toBeTrue();
+        expect($result->isFailure())->toBeTrue();
         
-        $error = $result->fold(fn($e) => $e, fn($v) => null);
+        $error = $result->getErrorOrNull();
         expect($error)->toBeInstanceOf(ParseError::class);
         
         // Verify error contains multiple issues
@@ -123,26 +124,26 @@ describe('Effect Composition and Error Handling Integration', function () {
 
         // Test successful registration
         $validRegistration = ['username' => 'newuser', 'email' => 'new@example.com'];
-        $result = Eff::runSafely($registrationPipeline($validRegistration));
+        $result = Run::syncResult($registrationPipeline($validRegistration));
         
-        expect($result->isRight())->toBeTrue();
-        $validated = $result->fold(fn($e) => null, fn($v) => $v);
+        expect($result->isSuccess())->toBeTrue();
+        $validated = $result->getValueOrNull();
         expect($validated)->toBe($validRegistration);
 
         // Test username conflict
         $conflictUsername = ['username' => 'taken_username', 'email' => 'new@example.com'];
-        $conflictResult = Eff::runSafely($registrationPipeline($conflictUsername));
+        $conflictResult = Run::syncResult($registrationPipeline($conflictUsername));
         
-        expect($conflictResult->isLeft())->toBeTrue();
-        $error = $conflictResult->fold(fn($e) => $e, fn($v) => null);
+        expect($conflictResult->isFailure())->toBeTrue();
+        $error = $conflictResult->getErrorOrNull();
         expect($error->getMessage())->toContain('Username already taken');
 
         // Test email conflict
         $conflictEmail = ['username' => 'newuser', 'email' => 'taken@example.com'];
-        $emailResult = Eff::runSafely($registrationPipeline($conflictEmail));
+        $emailResult = Run::syncResult($registrationPipeline($conflictEmail));
         
-        expect($emailResult->isLeft())->toBeTrue();
-        $emailError = $emailResult->fold(fn($e) => $e, fn($v) => null);
+        expect($emailResult->isFailure())->toBeTrue();
+        $emailError = $emailResult->getErrorOrNull();
         expect($emailError->getMessage())->toContain('Email already registered');
     });
 
@@ -183,19 +184,19 @@ describe('Effect Composition and Error Handling Integration', function () {
 
         // Test successful authorization
         $validRequest = ['userId' => 1, 'action' => 'admin'];
-        $result = Eff::runSafely($authorizationPipeline($validRequest));
+        $result = Run::syncResult($authorizationPipeline($validRequest));
         
-        expect($result->isRight())->toBeTrue();
-        $authorized = $result->fold(fn($e) => null, fn($v) => $v);
+        expect($result->isSuccess())->toBeTrue();
+        $authorized = $result->getValueOrNull();
         expect($authorized['user']['id'])->toBe(1);
         expect($authorized['action'])->toBe('admin');
 
         // Test permission denied
         $deniedRequest = ['userId' => 2, 'action' => 'admin'];
-        $deniedResult = Eff::runSafely($authorizationPipeline($deniedRequest));
+        $deniedResult = Run::syncResult($authorizationPipeline($deniedRequest));
         
-        expect($deniedResult->isLeft())->toBeTrue();
-        $error = $deniedResult->fold(fn($e) => $e, fn($v) => null);
+        expect($deniedResult->isFailure())->toBeTrue();
+        $error = $deniedResult->getErrorOrNull();
         expect($error->getMessage())->toContain('Insufficient permissions');
     });
 
@@ -220,20 +221,20 @@ describe('Effect Composition and Error Handling Integration', function () {
         };
 
         // Test normal successful case
-        $normalResult = Eff::runSafely($recoveringSchema('valid-input'));
-        expect($normalResult->isRight())->toBeTrue();
-        $normal = $normalResult->fold(fn($e) => null, fn($v) => $v);
+        $normalResult = Run::syncResult($recoveringSchema('valid-input'));
+        expect($normalResult->isSuccess())->toBeTrue();
+        $normal = $normalResult->getValueOrNull();
         expect($normal)->toBe('valid-input');
 
         // Test error recovery
-        $errorResult = Eff::runSafely($recoveringSchema('error'));
+        $errorResult = Run::syncResult($recoveringSchema('error'));
         expect($errorResult->isRight())->toBeTrue();
-        $recovered = $errorResult->fold(fn($e) => null, fn($v) => $v);
+        $recovered = $errorResult->getValueOrNull();
         expect($recovered)->toBe('default-fallback-value');
 
         // Test validation failure (not recovered)
-        $validationFailResult = Eff::runSafely($recoveringSchema('hi'));
-        expect($validationFailResult->isLeft())->toBeTrue();
+        $validationFailResult = Run::syncResult($recoveringSchema('hi'));
+        expect($validationFailResult->isFailure())->toBeTrue();
     });
 
     it('validates parallel operations maintain Effect composition principles', function () {
@@ -255,12 +256,12 @@ describe('Effect Composition and Error Handling Integration', function () {
 
         // This should use parallel validation internally
         $startTime = microtime(true);
-        $result = Eff::runSafely($batchSchema->decode($largeDataset));
+        $result = Run::syncResult($batchSchema->decode($largeDataset));
         $endTime = microtime(true);
 
-        expect($result->isRight())->toBeTrue();
+        expect($result->isSuccess())->toBeTrue();
         
-        $validated = $result->fold(fn($e) => null, fn($v) => $v);
+        $validated = $result->getValueOrNull();
         expect($validated['items'])->toHaveCount(100);
         expect($validated['items'][0]['id'])->toBe(1);
         expect($validated['items'][99]['id'])->toBe(100);

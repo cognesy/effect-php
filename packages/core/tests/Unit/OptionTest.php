@@ -10,7 +10,7 @@ describe('Option', function () {
         it('creates Some with value', function () {
             $option = Option::some(42);
             
-            expect($option)->toBeOption()
+            expect($option)->toBeInstanceOf(Option::class)
                 ->and($option->isSome())->toBeTrue()
                 ->and($option->isNone())->toBeFalse();
         });
@@ -18,7 +18,7 @@ describe('Option', function () {
         it('creates None without value', function () {
             $option = Option::none();
             
-            expect($option)->toBeOption()
+            expect($option)->toBeInstanceOf(Option::class)
                 ->and($option->isNone())->toBeTrue()
                 ->and($option->isSome())->toBeFalse();
         });

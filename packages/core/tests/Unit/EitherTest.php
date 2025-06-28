@@ -10,7 +10,7 @@ describe('Either', function () {
         it('creates Left with error value', function () {
             $either = Either::left('error');
             
-            expect($either)->toBeEither()
+            expect($either)->toBeInstanceOf(Either::class)
                 ->and($either->isLeft())->toBeTrue()
                 ->and($either->isRight())->toBeFalse();
         });
@@ -18,7 +18,7 @@ describe('Either', function () {
         it('creates Right with success value', function () {
             $either = Either::right(42);
             
-            expect($either)->toBeEither()
+            expect($either)->toBeInstanceOf(Either::class)
                 ->and($either->isRight())->toBeTrue()
                 ->and($either->isLeft())->toBeFalse();
         });
@@ -29,7 +29,7 @@ describe('Either', function () {
             $either = Either::right(5);
             $result = $either->map(fn($x) => $x * 2);
             
-            $value = $result->fold(fn($l) => null, fn($r) => $r);
+            $value = $result->fold(fn($cause) => null, fn($r) => $r);
             expect($result->isRight())->toBeTrue()
                 ->and($value)->toBe(10);
         });
@@ -38,9 +38,8 @@ describe('Either', function () {
             $either = Either::left('error');
             $result = $either->map(fn($x) => $x * 2);
             
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
             expect($result->isLeft())->toBeTrue()
-                ->and($error)->toBe('error');
+                ->and($result->getLeftOrNull())->toBe('error');
         });
     });
     
@@ -49,18 +48,16 @@ describe('Either', function () {
             $either = Either::left('error');
             $result = $either->mapLeft(fn($e) => strtoupper($e));
             
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
             expect($result->isLeft())->toBeTrue()
-                ->and($error)->toBe('ERROR');
+                ->and($result->getLeftOrNull())->toBe('ERROR');
         });
         
         it('preserves Right through left transformation', function () {
             $either = Either::right(42);
             $result = $either->mapLeft(fn($e) => strtoupper($e));
             
-            $value = $result->fold(fn($l) => null, fn($r) => $r);
             expect($result->isRight())->toBeTrue()
-                ->and($value)->toBe(42);
+                ->and($result->getRightOrNull())->toBe(42);
         });
     });
     
@@ -69,27 +66,24 @@ describe('Either', function () {
             $either = Either::right(5);
             $result = $either->flatMap(fn($x) => Either::right($x * 2));
             
-            $value = $result->fold(fn($l) => null, fn($r) => $r);
             expect($result->isRight())->toBeTrue()
-                ->and($value)->toBe(10);
+                ->and($result->getRightOrNull())->toBe(10);
         });
         
         it('short-circuits on Left', function () {
             $either = Either::left('error');
             $result = $either->flatMap(fn($x) => Either::right($x * 2));
             
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
             expect($result->isLeft())->toBeTrue()
-                ->and($error)->toBe('error');
+                ->and($result->getLeftOrNull())->toBe('error');
         });
         
         it('propagates inner Left', function () {
             $either = Either::right(5);
             $result = $either->flatMap(fn($x) => Either::left('inner error'));
             
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
             expect($result->isLeft())->toBeTrue()
-                ->and($error)->toBe('inner error');
+                ->and($result->getLeftOrNull())->toBe('inner error');
         });
     });
     
@@ -144,7 +138,7 @@ describe('Either', function () {
             $either = Either::right(42);
             $result = $either->map(fn($x) => $x);
             
-            expect($result->fold(fn($l) => null, fn($r) => $r))->toBe(42);
+            expect($result->fold(fn($cause) => null, fn($r) => $r))->toBe(42);
         });
         
         it('preserves composition', function () {
@@ -155,8 +149,8 @@ describe('Either', function () {
             $composed = $either->map($f)->map($g);
             $direct = $either->map(fn($x) => $g($f($x)));
             
-            expect($composed->fold(fn($l) => null, fn($r) => $r))
-                ->toBe($direct->fold(fn($l) => null, fn($r) => $r));
+            expect($composed->fold(fn($cause) => null, fn($r) => $r))
+                ->toBe($direct->fold(fn($cause) => null, fn($r) => $r));
         });
     });
     
@@ -168,16 +162,16 @@ describe('Either', function () {
             $leftSide = Either::right($value)->flatMap($f);
             $rightSide = $f($value);
             
-            expect($leftSide->fold(fn($l) => null, fn($r) => $r))
-                ->toBe($rightSide->fold(fn($l) => null, fn($r) => $r));
+            expect($leftSide->fold(fn($cause) => null, fn($r) => $r))
+                ->toBe($rightSide->fold(fn($cause) => null, fn($r) => $r));
         });
         
         it('right identity', function () {
             $either = Either::right(42);
             $result = $either->flatMap(fn($x) => Either::right($x));
             
-            expect($result->fold(fn($l) => null, fn($r) => $r))
-                ->toBe($either->fold(fn($l) => null, fn($r) => $r));
+            expect($result->fold(fn($cause) => null, fn($r) => $r))
+                ->toBe($either->fold(fn($cause) => null, fn($r) => $r));
         });
         
         it('associativity', function () {
@@ -188,8 +182,34 @@ describe('Either', function () {
             $leftAssoc = $either->flatMap($f)->flatMap($g);
             $rightAssoc = $either->flatMap(fn($x) => $f($x)->flatMap($g));
             
-            expect($leftAssoc->fold(fn($l) => null, fn($r) => $r))
-                ->toBe($rightAssoc->fold(fn($l) => null, fn($r) => $r));
+            expect($leftAssoc->fold(fn($cause) => null, fn($r) => $r))
+                ->toBe($rightAssoc->fold(fn($cause) => null, fn($r) => $r));
+        });
+    });
+    
+    describe('convenience methods', function () {
+        it('provides safe null-returning accessors', function () {
+            $left = Either::left('error');
+            $right = Either::right(42);
+            
+            expect($left->getLeftOrNull())->toBe('error')
+                ->and($left->getRightOrNull())->toBeNull()
+                ->and($right->getLeftOrNull())->toBeNull()
+                ->and($right->getRightOrNull())->toBe(42);
+        });
+        
+        it('provides direct accessors that throw on wrong type', function () {
+            $left = Either::left('error');
+            $right = Either::right(42);
+            
+            expect($left->getLeft())->toBe('error')
+                ->and($right->getRight())->toBe(42);
+                
+            expect(fn() => $left->getRight())
+                ->toThrow(\RuntimeException::class, 'Cannot get right value from Left Either');
+                
+            expect(fn() => $right->getLeft())
+                ->toThrow(\RuntimeException::class, 'Cannot get left value from Right Either');
         });
     });
     
@@ -205,9 +225,9 @@ describe('Either', function () {
             $result2 = $parseNumber('abc')->flatMap($double);
             
             expect($result1->isRight())->toBeTrue()
-                ->and($result1->fold(fn($l) => null, fn($r) => $r))->toBe(84)
+                ->and($result1->getRightOrNull())->toBe(84)
                 ->and($result2->isLeft())->toBeTrue()
-                ->and($result2->fold(fn($l) => $l, fn($r) => null))->toBe('Not a number: abc');
+                ->and($result2->getLeftOrNull())->toBe('Not a number: abc');
         });
     });
 });

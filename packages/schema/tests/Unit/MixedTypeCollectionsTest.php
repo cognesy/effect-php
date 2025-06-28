@@ -23,8 +23,8 @@ describe('Any and Mixed Collections', function () {
         $schema = Schema::collection(Schema::any());
         
         $mixedData = ['string', 42, true, null, ['nested', 'array']];
-        $result = Eff::runSafely($schema->decode($mixedData));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($mixedData));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($mixedData);
     });
 
@@ -32,8 +32,8 @@ describe('Any and Mixed Collections', function () {
         $schema = Schema::collection(Schema::mixed())->max(10);
         
         $mixedData = ['text', 123, false, 3.14];
-        $result = Eff::runSafely($schema->decode($mixedData));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($mixedData));
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('any collection with constraints', function () {
@@ -42,16 +42,16 @@ describe('Any and Mixed Collections', function () {
             ->between(2, 8);
         
         // Valid
-        $result = Eff::runSafely($schema->decode([1, 'two', true]));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode([1, 'two', true]));
+        expect($result->isSuccess())->toBeTrue();
         
         // Invalid - empty
-        $result = Eff::runSafely($schema->decode([]));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode([]));
+        expect($result->isFailure())->toBeTrue();
         
         // Invalid - too few
-        $result = Eff::runSafely($schema->decode([1]));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode([1]));
+        expect($result->isFailure())->toBeTrue();
     });
 });
 
@@ -61,12 +61,12 @@ describe('Union Collections', function () {
             Schema::union([Schema::string(), Schema::number()])
         )->min(1);
         
-        $result = Eff::runSafely($schema->decode(['hello', 42, 'world', 3.14]));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['hello', 42, 'world', 3.14]));
+        expect($result->isSuccess())->toBeTrue();
         
         // Invalid - contains boolean
-        $result = Eff::runSafely($schema->decode(['hello', true]));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['hello', true]));
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('nullable value collection', function () {
@@ -74,12 +74,12 @@ describe('Union Collections', function () {
             Schema::nullOr(Schema::string())
         )->max(5);
         
-        $result = Eff::runSafely($schema->decode(['hello', null, 'world', null]));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['hello', null, 'world', null]));
+        expect($result->isSuccess())->toBeTrue();
         
         // Invalid - wrong type
-        $result = Eff::runSafely($schema->decode(['hello', 42]));
-        expect($result->isLeft())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['hello', 42]));
+        expect($result->isFailure())->toBeTrue();
     });
 
     test('enum or string collection', function () {
@@ -92,8 +92,8 @@ describe('Union Collections', function () {
         );
         
         // Test enum values are decoded properly
-        $result = Eff::runSafely($schema->decode(['red', 'custom', 'blue']));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['red', 'custom', 'blue']));
+        expect($result->isSuccess())->toBeTrue();
         
         $decoded = $result->fold(fn($e) => null, fn($v) => $v);
         expect($decoded[0])->toBe(Color::RED);
@@ -110,8 +110,8 @@ describe('Union Collections', function () {
             ])
         )->length(4);
         
-        $result = Eff::runSafely($schema->decode([42, true, 'special', false]));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode([42, true, 'special', false]));
+        expect($result->isSuccess())->toBeTrue();
         
         $decoded = $result->fold(fn($e) => null, fn($v) => $v);
         expect($decoded)->toBe([42, true, 'special', false]);
@@ -132,8 +132,8 @@ describe('Object Collections', function () {
             ['id' => 2, 'name' => 'Item 2']
         ];
         
-        $result = Eff::runSafely($schema->decode($data));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($data));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($data);
     });
 
@@ -151,8 +151,8 @@ describe('Object Collections', function () {
             ['id' => 2, 'name' => 'Jane'] // no email
         ];
         
-        $result = Eff::runSafely($schema->decode($users));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($users));
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('nested object collection', function () {
@@ -178,8 +178,8 @@ describe('Object Collections', function () {
             ]
         ];
         
-        $result = Eff::runSafely($schema->decode($people));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($people));
+        expect($result->isSuccess())->toBeTrue();
     });
 });
 
@@ -193,8 +193,8 @@ describe('Record Collections', function () {
             ['en' => 'Goodbye', 'es' => 'Adiós']
         ];
         
-        $result = Eff::runSafely($schema->decode($data));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($data));
+        expect($result->isSuccess())->toBeTrue();
     });
 
     test('mixed record collection', function () {
@@ -210,8 +210,8 @@ describe('Record Collections', function () {
             ['enabled' => false, 'timeout' => 30]
         ];
         
-        $result = Eff::runSafely($schema->decode($configs));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($configs));
+        expect($result->isSuccess())->toBeTrue();
     });
 });
 
@@ -227,13 +227,13 @@ describe('Transformation Collections', function () {
         $schema = Schema::collection($stringToNumberSchema)->length(3);
         
         // Decode: strings become numbers
-        $result = Eff::runSafely($schema->decode(['1.5', '2.7', '3.14']));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['1.5', '2.7', '3.14']));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([1.5, 2.7, 3.14]);
         
         // Encode: numbers become strings
-        $result = Eff::runSafely($schema->encode([1.5, 2.7, 3.14]));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->encode([1.5, 2.7, 3.14]));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe(['1.5', '2.7', '3.14']);
     });
 
@@ -247,8 +247,8 @@ describe('Transformation Collections', function () {
         
         $schema = Schema::collection($dateSchema)->max(10);
         
-        $result = Eff::runSafely($schema->decode(['2023-01-01', '2023-12-31']));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode(['2023-01-01', '2023-12-31']));
+        expect($result->isSuccess())->toBeTrue();
         
         $decoded = $result->fold(fn($e) => null, fn($v) => $v);
         expect($decoded[0])->toBeInstanceOf(DateTime::class);
@@ -266,8 +266,8 @@ describe('Edge Cases and Error Handling', function () {
         ];
         
         foreach ($schemas as $schema) {
-            $result = Eff::runSafely($schema->decode([]));
-            expect($result->isRight())->toBeTrue();
+            $result = Run::syncResult($schema->decode([]));
+            expect($result->isSuccess())->toBeTrue();
             expect($result->fold(fn($e) => null, fn($v) => $v))->toBe([]);
         }
     });
@@ -290,8 +290,8 @@ describe('Edge Cases and Error Handling', function () {
             ]
         ];
         
-        $result = Eff::runSafely($deepSchema->decode($deepData));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($deepSchema->decode($deepData));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($deepData);
     });
 
@@ -299,8 +299,8 @@ describe('Edge Cases and Error Handling', function () {
         $schema = Schema::collection(Schema::number())->max(1000);
         
         $largeArray = range(1, 500);
-        $result = Eff::runSafely($schema->decode($largeArray));
-        expect($result->isRight())->toBeTrue();
+        $result = Run::syncResult($schema->decode($largeArray));
+        expect($result->isSuccess())->toBeTrue();
         expect($result->fold(fn($e) => null, fn($v) => $v))->toBe($largeArray);
     });
 });

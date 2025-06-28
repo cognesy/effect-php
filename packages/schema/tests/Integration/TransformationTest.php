@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use EffectPHP\Schema\Schema;
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 
 describe('Bidirectional Transformation Integration', function () {
     
@@ -23,17 +24,17 @@ describe('Bidirectional Transformation Integration', function () {
 
         // Test decode: ISO string → formatted string
         $isoInput = '2024-01-15T10:30:00Z';
-        $decodeResult = Eff::runSafely($dateSchema->decode($isoInput));
+        $decodeResult = Run::syncResult($dateSchema->decode($isoInput));
         
-        expect($decodeResult->isRight())->toBeTrue();
-        $formatted = $decodeResult->fold(fn($e) => null, fn($v) => $v);
+        expect($decodeResult->isSuccess())->toBeTrue();
+        $formatted = $decodeResult->getValueOrNull();
         expect($formatted)->toMatch('/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/');
 
         // Test encode: formatted string → ISO string
-        $encodeResult = Eff::runSafely($dateSchema->encode($formatted));
+        $encodeResult = Run::syncResult($dateSchema->encode($formatted));
         
-        expect($encodeResult->isRight())->toBeTrue();
-        $isoOutput = $encodeResult->fold(fn($e) => null, fn($v) => $v);
+        expect($encodeResult->isSuccess())->toBeTrue();
+        $isoOutput = $encodeResult->getValueOrNull();
         expect($isoOutput)->toMatch('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/');
     });
 
@@ -87,20 +88,20 @@ describe('Bidirectional Transformation Integration', function () {
         ];
 
         // Test decode transformation
-        $decodeResult = Eff::runSafely($userTransform->decode($externalData));
-        expect($decodeResult->isRight())->toBeTrue();
+        $decodeResult = Run::syncResult($userTransform->decode($externalData));
+        expect($decodeResult->isSuccess())->toBeTrue();
         
-        $internal = $decodeResult->fold(fn($e) => null, fn($v) => $v);
+        $internal = $decodeResult->getValueOrNull();
         expect($internal['id'])->toBe(123);
         expect($internal['name'])->toBe('John Doe');
         expect($internal['email'])->toBe('john@example.com');
         expect($internal['age'])->toBe((int) date('Y') - 1990); // Current year - birth year
 
         // Test encode transformation
-        $encodeResult = Eff::runSafely($userTransform->encode($internal));
-        expect($encodeResult->isRight())->toBeTrue();
+        $encodeResult = Run::syncResult($userTransform->encode($internal));
+        expect($encodeResult->isSuccess())->toBeTrue();
         
-        $external = $encodeResult->fold(fn($e) => null, fn($v) => $v);
+        $external = $encodeResult->getValueOrNull();
         expect($external['user_id'])->toBe(123);
         expect($external['full_name'])->toBe('John Doe');
         expect($external['email_address'])->toBe('john@example.com');
@@ -123,16 +124,16 @@ describe('Bidirectional Transformation Integration', function () {
         );
 
         // Test successful transformation
-        $validResult = Eff::runSafely($riskyTransform->decode('123'));
-        expect($validResult->isRight())->toBeTrue();
-        $value = $validResult->fold(fn($e) => null, fn($v) => $v);
+        $validResult = Run::syncResult($riskyTransform->decode('123'));
+        expect($validResult->isSuccess())->toBeTrue();
+        $value = $validResult->getValueOrNull();
         expect($value)->toBe(123);
 
         // Test transformation error
-        $errorResult = Eff::runSafely($riskyTransform->decode('invalid'));
-        expect($errorResult->isLeft())->toBeTrue();
+        $errorResult = Run::syncResult($riskyTransform->decode('invalid'));
+        expect($errorResult->isFailure())->toBeTrue();
         
-        $error = $errorResult->fold(fn($e) => $e, fn($v) => null);
+        $error = $errorResult->getErrorOrNull();
         expect($error)->toBeInstanceOf(\InvalidArgumentException::class);
         expect($error->getMessage())->toContain('Cannot convert invalid string');
     });
@@ -176,10 +177,10 @@ describe('Bidirectional Transformation Integration', function () {
         };
 
         $jsonInput = '["  hello  ", "", "world  ", "   ", "test"]';
-        $result = Eff::runSafely($fullPipeline($jsonInput));
+        $result = Run::syncResult($fullPipeline($jsonInput));
         
-        expect($result->isRight())->toBeTrue();
-        $processed = $result->fold(fn($e) => null, fn($v) => $v);
+        expect($result->isSuccess())->toBeTrue();
+        $processed = $result->getValueOrNull();
         expect($processed)->toBe(['hello', 'world', 'test']);
     });
 
@@ -244,18 +245,18 @@ describe('Bidirectional Transformation Integration', function () {
         ];
 
         // Test full roundtrip: flat → nested → flat
-        $decodeResult = Eff::runSafely($configTransform->decode($originalFlat));
-        expect($decodeResult->isRight())->toBeTrue();
+        $decodeResult = Run::syncResult($configTransform->decode($originalFlat));
+        expect($decodeResult->isSuccess())->toBeTrue();
         
-        $nested = $decodeResult->fold(fn($e) => null, fn($v) => $v);
+        $nested = $decodeResult->getValueOrNull();
         expect($nested['database']['host'])->toBe('localhost');
         expect($nested['database']['port'])->toBe(5432);
         expect($nested['application']['debug'])->toBeTrue();
 
-        $encodeResult = Eff::runSafely($configTransform->encode($nested));
-        expect($encodeResult->isRight())->toBeTrue();
+        $encodeResult = Run::syncResult($configTransform->encode($nested));
+        expect($encodeResult->isSuccess())->toBeTrue();
         
-        $roundtripFlat = $encodeResult->fold(fn($e) => null, fn($v) => $v);
+        $roundtripFlat = $encodeResult->getValueOrNull();
         expect($roundtripFlat)->toBe($originalFlat);
     });
 
@@ -289,18 +290,18 @@ describe('Bidirectional Transformation Integration', function () {
 
         // Test with optional property present
         $withOptional = ['required' => 'value', 'optional' => 'optional_value'];
-        $result1 = Eff::runSafely($optionalTransform->decode($withOptional));
-        expect($result1->isRight())->toBeTrue();
+        $result1 = Run::syncResult($optionalTransform->decode($withOptional));
+        expect($result1->isSuccess())->toBeTrue();
         
-        $transformed1 = $result1->fold(fn($e) => null, fn($v) => $v);
+        $transformed1 = $result1->getValueOrNull();
         expect($transformed1['optional'])->toBe('optional_value');
 
         // Test with optional property missing
         $withoutOptional = ['required' => 'value'];
-        $result2 = Eff::runSafely($optionalTransform->decode($withoutOptional));
-        expect($result2->isRight())->toBeTrue();
+        $result2 = Run::syncResult($optionalTransform->decode($withoutOptional));
+        expect($result2->isSuccess())->toBeTrue();
         
-        $transformed2 = $result2->fold(fn($e) => null, fn($v) => $v);
+        $transformed2 = $result2->getValueOrNull();
         expect($transformed2['optional'] ?? null)->toBeNull();
     });
 });

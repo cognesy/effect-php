@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 
 describe('Effect System & Core Operations', function () {
     
@@ -38,7 +39,7 @@ describe('Effect System & Core Operations', function () {
                         ->map(fn($posts) => ['user' => $user, 'posts' => $posts])
                 );
             
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             
             expect($result['user']['name'])->toBe('User 123')
                 ->and($result['posts'])->toHaveCount(2);
@@ -54,7 +55,7 @@ describe('Effect System & Core Operations', function () {
                 $effect = $effect->flatMap(fn($x) => Eff::succeed($x + 1));
             }
             
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             
             expect($result)->toBe(5000);
         });
@@ -71,7 +72,7 @@ describe('Effect System & Core Operations', function () {
             expect($sideEffect)->toBeFalse();
             
             // Only executed when run
-            $result = Eff::runSync($effect);
+            $result = Run::sync($effect);
             expect($sideEffect)->toBeTrue()
                 ->and($result)->toBe('executed');
         });
@@ -88,7 +89,7 @@ describe('Effect System & Core Operations', function () {
                     return $x * 2;
                 });
             
-            expect(fn() => Eff::runSync($effect))
+            expect(fn() => Run::sync($effect))
                 ->toThrow(\RuntimeException::class, 'Early failure');
                 
             expect($sideEffect)->toBeFalse();
@@ -102,7 +103,7 @@ describe('Effect System & Core Operations', function () {
                 ->flatMap(fn($x) => Eff::succeed($x + 1));
             
             try {
-                Eff::runSync($effect);
+                Run::sync($effect);
                 expect(false)->toBeTrue('Should have thrown exception');
             } catch (\InvalidArgumentException $e) {
                 expect($e)->toBe($originalError)
@@ -112,18 +113,18 @@ describe('Effect System & Core Operations', function () {
     });
     
     describe('safe execution patterns', function () {
-        it('provides safe execution with Either result', function () {
+        it('provides safe execution with Result outcome', function () {
             $successEffect = Eff::succeed('success value');
             $failureEffect = Eff::fail(new \RuntimeException('failure'));
             
-            $successResult = Eff::runSafely($successEffect);
-            $failureResult = Eff::runSafely($failureEffect);
+            $successResult = Run::syncResult($successEffect);
+            $failureResult = Run::syncResult($failureEffect);
             
-            expect($successResult->isRight())->toBeTrue()
-                ->and($successResult->fold(fn($l) => null, fn($r) => $r))->toBe('success value');
+            expect($successResult->isSuccess())->toBeTrue()
+                ->and($successResult->getValueOrNull())->toBe('success value');
                 
-            expect($failureResult->isLeft())->toBeTrue()
-                ->and($failureResult->fold(fn($l) => $l, fn($r) => null))->toBeInstanceOf(\RuntimeException::class);
+            expect($failureResult->isFailure())->toBeTrue()
+                ->and($failureResult->getErrorOrNull())->toBeInstanceOf(\RuntimeException::class);
         });
         
         it('handles synchronous computations that may throw', function () {
@@ -173,10 +174,10 @@ describe('Effect System & Core Operations', function () {
                     ->flatMap($parseResponse)
                     ->flatMap($validateOutput);
             
-            $result = Eff::runSafely($processRequest(['prompt' => 'test prompt']));
+            $result = Run::syncResult($processRequest(['prompt' => 'test prompt']));
             
-            expect($result->isRight())->toBeTrue();
-            $output = $result->fold(fn($l) => null, fn($r) => $r);
+            expect($result->isSuccess())->toBeTrue();
+            $output = $result->getValueOrNull();
             expect($output['result'])->toBe('parsed data');
         });
         
@@ -209,8 +210,8 @@ describe('Effect System & Core Operations', function () {
                     ->flatMap(fn($provider) => $callProvider($provider, ['prompt' => $prompt]))
                     ->map(fn($response) => ['provider' => $providerType, 'response' => $response]);
             
-            $openaiResult = Eff::runSync($processWithProvider('openai', 'Hello'));
-            $anthropicResult = Eff::runSync($processWithProvider('anthropic', 'Hello'));
+            $openaiResult = Run::sync($processWithProvider('openai', 'Hello'));
+            $anthropicResult = Run::sync($processWithProvider('anthropic', 'Hello'));
             
             expect($openaiResult['provider'])->toBe('openai')
                 ->and($openaiResult['response']['content'])->toContain('OpenAI: Hello');

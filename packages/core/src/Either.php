@@ -9,7 +9,7 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Either monad with enhanced ergonomics
+ * Either monad
  *
  * @template L
  * @template R
@@ -111,5 +111,59 @@ final readonly class Either
         return $this->isLeft
             ? Eff::fail($this->value instanceof Throwable ? $this->value : new RuntimeException((string) $this->value))
             : Eff::succeed($this->value);
+    }
+    
+    /**
+     * Get the left value or null if this is a Right
+     * Convenience method to avoid fold() for simple left access
+     * 
+     * @return L|null
+     */
+    public function getLeftOrNull(): mixed
+    {
+        return $this->isLeft ? $this->value : null;
+    }
+    
+    /**
+     * Get the right value or null if this is a Left
+     * Convenience method to avoid fold() for simple right access
+     * 
+     * @return R|null
+     */
+    public function getRightOrNull(): mixed
+    {
+        return $this->isLeft ? null : $this->value;
+    }
+    
+    /**
+     * Get the left value directly
+     * Safe to call only when you know this is a Left
+     * Throws exception if called on Right
+     * 
+     * @return L
+     * @throws RuntimeException if this is a Right
+     */
+    public function getLeft(): mixed
+    {
+        if (!$this->isLeft) {
+            throw new RuntimeException('Cannot get left value from Right Either');
+        }
+        return $this->value;
+    }
+    
+    /**
+     * Get the right value directly
+     * Safe to call only when you know this is a Right
+     * Throws exception if called on Left
+     * 
+     * @return R
+     * @throws RuntimeException if this is a Left
+     */
+    public function getRight(): mixed
+    {
+        if ($this->isLeft) {
+            throw new RuntimeException('Cannot get right value from Left Either');
+        }
+        return $this->value;
     }
 }

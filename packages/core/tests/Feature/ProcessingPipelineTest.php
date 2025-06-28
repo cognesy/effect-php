@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
+use EffectPHP\Core\Run;
 use EffectPHP\Core\Either;
 use EffectPHP\Core\Layer\Layer;
 use EffectPHP\Core\Option;
+use EffectPHP\Core\Result\Failure;
 
 describe('Multi-stage Processing Pipeline', function () {
     
@@ -44,7 +46,7 @@ describe('Multi-stage Processing Pipeline', function () {
                     ->flatMap($enrichData)
                     ->flatMap($validateOutput);
             
-            $result = Eff::runSync($pipeline(['input' => '  Hello World  ']));
+            $result = Run::sync($pipeline(['input' => '  Hello World  ']));
             
             expect($result['input'])->toBe('hello world')
                 ->and($result['normalized'])->toBeTrue()
@@ -62,10 +64,10 @@ describe('Multi-stage Processing Pipeline', function () {
                     ->flatMap($stage2)
                     ->flatMap($stage3);
             
-            $result = Eff::runSafely($pipeline('test'));
+            $result = Run::syncResult($pipeline('test'));
             
-            expect($result->isLeft())->toBeTrue();
-            $error = $result->fold(fn($l) => $l, fn($r) => null);
+            expect($result->isFailure())->toBeTrue();
+            $error = $result->getErrorOrNull();
             expect($error->getMessage())->toBe('Stage 2 failed');
         });
     });
@@ -101,8 +103,8 @@ describe('Multi-stage Processing Pipeline', function () {
                             : $processText($classified);
                     });
             
-            $numberResult = Eff::runSync($conditionalPipeline(['value' => '42']));
-            $textResult = Eff::runSync($conditionalPipeline(['value' => 'hello']));
+            $numberResult = Run::sync($conditionalPipeline(['value' => '42']));
+            $textResult = Run::sync($conditionalPipeline(['value' => 'hello']));
             
             expect($numberResult['processed'])->toBe(84.0)
                 ->and($numberResult['processor'])->toBe('number');
@@ -127,8 +129,8 @@ describe('Multi-stage Processing Pipeline', function () {
                             ->whenNone($data);
                     });
             
-            $enrichedResult = Eff::runSync($pipeline(['data' => 'test', 'enrich' => true]));
-            $plainResult = Eff::runSync($pipeline(['data' => 'test', 'enrich' => false]));
+            $enrichedResult = Run::sync($pipeline(['data' => 'test', 'enrich' => true]));
+            $plainResult = Run::sync($pipeline(['data' => 'test', 'enrich' => false]));
             
             expect($enrichedResult['enriched_data'])->toBe('additional_info');
             expect(isset($plainResult['enriched_data']))->toBeFalse();
@@ -164,7 +166,7 @@ describe('Multi-stage Processing Pipeline', function () {
                 'name' => 'John Doe'
             ];
             
-            $result = Eff::runSync($parallelValidation($validUser));
+            $result = Run::sync($parallelValidation($validUser));
             
             expect($result['email_valid'])->toBeTrue()
                 ->and($result['age_valid'])->toBeTrue()
@@ -199,7 +201,7 @@ describe('Multi-stage Processing Pipeline', function () {
                 $fetchUserStats($userId)
             ])->flatMap($aggregateData);
             
-            $result = Eff::runSync($userDataPipeline(123));
+            $result = Run::sync($userDataPipeline(123));
             
             expect($result['user']['profile']['name'])->toBe('User 123')
                 ->and($result['user']['preferences']['theme'])->toBe('dark')
@@ -277,7 +279,7 @@ describe('Multi-stage Processing Pipeline', function () {
                     ->flatMap($validateSchema)
                     ->flatMap($transformOutput);
             
-            $result = Eff::runSync($instructorPipeline([
+            $result = Run::sync($instructorPipeline([
                 'prompt' => 'Extract person information from this text'
             ]));
             
@@ -361,7 +363,7 @@ describe('Multi-stage Processing Pipeline', function () {
                     ->flatMap($normalizeResponse);
             
             // Test with preferred provider available
-            $result1 = Eff::runSync($polyglotPipeline([
+            $result1 = Run::sync($polyglotPipeline([
                 'prompt' => 'Hello, world!',
                 'preferred_provider' => 'openai'
             ]));
@@ -370,7 +372,7 @@ describe('Multi-stage Processing Pipeline', function () {
                 ->and($result1['content'])->toContain('Response from openai');
             
             // Test with fallback (preferred unavailable)
-            $result2 = Eff::runSync($polyglotPipeline([
+            $result2 = Run::sync($polyglotPipeline([
                 'prompt' => 'Hello, world!',
                 'preferred_provider' => 'local' // Not available
             ]));
@@ -418,7 +420,7 @@ describe('Multi-stage Processing Pipeline', function () {
                 array_map($processChunk, $rawChunks)
             )->flatMap($aggregateChunks);
             
-            $result = Eff::runSync($streamingPipeline($chunks));
+            $result = Run::sync($streamingPipeline($chunks));
             
             expect($result['complete_content'])->toBe('Hello World!')
                 ->and($result['is_complete'])->toBeTrue()
@@ -463,7 +465,7 @@ describe('Multi-stage Processing Pipeline', function () {
                         fn($e) => $fallbackProcessor($input) // Final fallback
                     );
             
-            $result = Eff::runSync($resilientPipeline(['data' => 'test']));
+            $result = Run::sync($resilientPipeline(['data' => 'test']));
             
             expect($result['processed'])->toBeTrue()
                 ->and($result['attempts'])->toBe(3)

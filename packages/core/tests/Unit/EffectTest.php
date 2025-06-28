@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
 use EffectPHP\Core\Either;
 use EffectPHP\Core\Option;
+use EffectPHP\Core\Schedule\Schedule;
 use EffectPHP\Core\Utils\Duration;
 use EffectPHP\Core\Exceptions\UnknownException;
 
@@ -14,7 +16,7 @@ describe('Effect', function () {
         it('creates successful effect', function () {
             $effect = Eff::succeed(42);
             
-            expect($effect)->toBeEffect()
+            expect($effect)->toBeInstanceOf(Effect::class)
                 ->and($effect)->toProduceValue(42);
         });
         
@@ -30,7 +32,7 @@ describe('Effect', function () {
             $error = new \RuntimeException('Test error');
             $effect = Eff::fail($error);
             
-            expect($effect)->toBeEffect()
+            expect($effect)->toBeInstanceOf(Effect::class)
                 ->and($effect)->toFailWith(\RuntimeException::class);
         });
     });
@@ -66,9 +68,9 @@ describe('Effect', function () {
             $effect = Eff::try(fn() => throw new \RuntimeException('Original error'));
             
             $result = runEffectSafely($effect);
-            expect($result->isLeft())->toBeTrue();
+            expect($result->isFailure())->toBeTrue();
             
-            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            $error = $result->getErrorOrNull();
             expect($error)->toBeInstanceOf(UnknownException::class);
             expect($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
             expect($error->getPrevious()->getMessage())->toBe('Original error');
@@ -92,9 +94,9 @@ describe('Effect', function () {
             );
             
             $result = runEffectSafely($effect);
-            expect($result->isLeft())->toBeTrue();
+            expect($result->isFailure())->toBeTrue();
             
-            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            $error = $result->getErrorOrNull();
             expect($error)->toBeInstanceOf(\LogicException::class);
             expect($error->getMessage())->toBe('Custom: Original');
         });
@@ -165,9 +167,9 @@ describe('Effect', function () {
             $effect = Eff::tryPromise(fn() => throw new \LogicException('Original async error'));
             
             $result = runEffectSafely($effect);
-            expect($result->isLeft())->toBeTrue();
+            expect($result->isFailure())->toBeTrue();
             
-            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            $error = $result->getErrorOrNull();
             expect($error)->toBeInstanceOf(UnknownException::class);
             expect($error->getPrevious())->toBeInstanceOf(\LogicException::class);
             expect($error->getPrevious()->getMessage())->toBe('Original async error');
@@ -191,9 +193,9 @@ describe('Effect', function () {
             );
             
             $result = runEffectSafely($effect);
-            expect($result->isLeft())->toBeTrue();
+            expect($result->isFailure())->toBeTrue();
             
-            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            $error = $result->getErrorOrNull();
             expect($error)->toBeInstanceOf(\LogicException::class);
             expect($error->getMessage())->toBe('Custom async: Async original');
         });
@@ -362,7 +364,7 @@ describe('Effect', function () {
             $duration = Duration::milliseconds(10);
             $effect = Eff::sleepFor($duration);
             
-            expect($effect)->toBeEffect();
+            expect($effect)->toBeInstanceOf(Effect::class);
             expect($effect)->toProduceValue(null);
         });
     });
@@ -371,7 +373,7 @@ describe('Effect', function () {
         it('creates effect that never completes', function () {
             $effect = Eff::never();
             
-            expect($effect)->toBeEffect();
+            expect($effect)->toBeInstanceOf(Effect::class);
         });
     });
     
@@ -379,7 +381,7 @@ describe('Effect', function () {
         it('creates service access effect', function () {
             $effect = Eff::service('TestService');
             
-            expect($effect)->toBeEffect();
+            expect($effect)->toBeInstanceOf(Effect::class);
         });
     });
     
@@ -387,7 +389,7 @@ describe('Effect', function () {
         it('creates clock service access effect', function () {
             $effect = Eff::clock();
             
-            expect($effect)->toBeEffect();
+            expect($effect)->toBeInstanceOf(Effect::class);
         });
     });
     
@@ -395,7 +397,7 @@ describe('Effect', function () {
         it('creates current time effect', function () {
             $effect = Eff::currentTimeMillis();
             
-            expect($effect)->toBeEffect();
+            expect($effect)->toBeInstanceOf(Effect::class);
         });
     });
     
@@ -403,7 +405,7 @@ describe('Effect', function () {
         it('executes effect with clock access', function () {
             $effect = Eff::clockWith(fn($clock) => Eff::succeed('clock result'));
             
-            expect($effect)->toBeEffect();
+            expect($effect)->toBeInstanceOf(Effect::class);
         });
     });
     
@@ -455,18 +457,18 @@ describe('Effect', function () {
         
         describe('retryWith (via method)', function () {
             it('creates retry effect structure', function () {
-                $schedule = \EffectPHP\Core\Schedule\Schedule::once();
+                $schedule = Schedule::once();
                 $effect = Eff::succeed('test')->retryWith($schedule);
                 
-                expect($effect)->toBeEffect();
+                expect($effect)->toBeInstanceOf(Effect::class);
             });
             
             it('creates retry wrapper around effect', function () {
-                $schedule = \EffectPHP\Core\Schedule\Schedule::once();
+                $schedule = Schedule::once();
                 $original = Eff::succeed('success');
                 $retryEffect = $original->retryWith($schedule);
                 
-                expect($retryEffect)->toBeEffect();
+                expect($retryEffect)->toBeInstanceOf(Effect::class);
                 expect($retryEffect)->not->toBe($original);
             });
         });
@@ -568,8 +570,8 @@ describe('Effect', function () {
             
             $result = runEffectSafely($effect);
             
-            expect($result->isLeft())->toBeTrue();
-            $error = $result->fold(fn($e) => $e, fn($v) => null);
+            expect($result->isFailure())->toBeTrue();
+            $error = $result->getErrorOrNull();
             expect($error)->toBeInstanceOf(\RuntimeException::class)
                 ->and($error->getMessage())->toBe('Original error');
         });
