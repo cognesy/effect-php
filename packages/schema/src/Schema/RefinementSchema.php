@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Schema;
+namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
 use EffectPHP\Schema\AST\RefinementType;
+use EffectPHP\Schema\Contracts\SchemaInterface;
 use EffectPHP\Schema\Parse\ParseError;
 use EffectPHP\Schema\Parse\RefinementIssue;
 

@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Schema;
+namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
 use EffectPHP\Schema\AST\TransformationType;
+use EffectPHP\Schema\Contracts\SchemaInterface;
 
 /**
  * Transformation schema for bidirectional conversions using core Effects
@@ -75,5 +76,19 @@ final class TransformationSchema extends BaseSchema
                 return Eff::fail($e);
             }
         });
+    }
+
+    /**
+     * Override annotate to handle TransformationSchema's specific constructor
+     */
+    public function annotate(string $key, mixed $value): SchemaInterface
+    {
+        return new TransformationSchema(
+            $this->from,
+            $this->to,
+            $this->decode,
+            $this->encode,
+            array_merge($this->ast->getAnnotations(), [$key => $value])
+        );
     }
 }

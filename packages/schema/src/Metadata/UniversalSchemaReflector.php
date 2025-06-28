@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace EffectPHP\Schema\Metadata;
 
-use EffectPHP\Schema\ArraySchema;
-use EffectPHP\Schema\BooleanSchema;
-use EffectPHP\Schema\NumberSchema;
-use EffectPHP\Schema\ObjectSchema;
-use EffectPHP\Schema\RefinementSchema;
-use EffectPHP\Schema\SchemaInterface;
-use EffectPHP\Schema\StringSchema;
+use EffectPHP\Schema\Contracts\SchemaInterface;
+use EffectPHP\Schema\Schema;
+use EffectPHP\Schema\Schema\ArraySchema;
+use EffectPHP\Schema\Schema\BooleanSchema;
+use EffectPHP\Schema\Schema\NumberSchema;
+use EffectPHP\Schema\Schema\ObjectSchema;
+use EffectPHP\Schema\Schema\RefinementSchema;
+use EffectPHP\Schema\Schema\StringSchema;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -80,17 +81,18 @@ final class UniversalSchemaReflector implements SchemaReflectorInterface
 
     private function createSchemaFromMetadata(PropertyMetadataInterface $metadata): SchemaInterface
     {
+        $constraints = $metadata->getConstraints();
+        
         $baseSchema = match ($metadata->getType()) {
             'string' => new StringSchema(),
             'integer' => new NumberSchema(),
             'number' => new NumberSchema(),
             'boolean' => new BooleanSchema(),
-            'array' => new ArraySchema(new StringSchema()), // Default to string array
+            'array' => $this->createArraySchema($constraints),
             default => new StringSchema() // Fallback to string
         };
 
         // Apply constraints from metadata
-        $constraints = $metadata->getConstraints();
 
         if (isset($constraints['minLength'])) {
             $baseSchema = new RefinementSchema(
@@ -138,5 +140,33 @@ final class UniversalSchemaReflector implements SchemaReflectorInterface
         }
 
         return $baseSchema;
+    }
+
+    private function createArraySchema(array $constraints): SchemaInterface
+    {
+        // Check if it's a record type (array<key, value>)
+        if (isset($constraints['array_type']) && $constraints['array_type'] === 'record') {
+            $keySchema = $this->createSchemaForType($constraints['array_key_type'] ?? 'string');
+            $valueSchema = $this->createSchemaForType($constraints['array_value_type'] ?? 'mixed');
+            return Schema::record($keySchema, $valueSchema);
+        }
+
+        // Sequential array (array<value> or value[])
+        $itemType = $constraints['array_item_type'] ?? 'string';
+        $itemSchema = $this->createSchemaForType($itemType);
+        return new ArraySchema($itemSchema);
+    }
+
+    private function createSchemaForType(string $type): SchemaInterface
+    {
+        return match ($type) {
+            'string' => Schema::string(),
+            'int', 'integer' => Schema::number(),
+            'float', 'double', 'number' => Schema::number(),
+            'bool', 'boolean' => Schema::boolean(),
+            'mixed' => Schema::mixed(),
+            'any' => Schema::any(),
+            default => Schema::string() // Fallback
+        };
     }
 }

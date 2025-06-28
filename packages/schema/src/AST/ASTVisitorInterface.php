@@ -15,4 +15,9 @@ interface ASTVisitorInterface
     public function visitUnionType(UnionType $node): mixed;
     public function visitRefinementType(RefinementType $node): mixed;
     public function visitTransformationType(TransformationType $node): mixed;
+    public function visitRecordType(RecordType $node): mixed;
+    public function visitAnyType(AnyType $node): mixed;
+    public function visitTupleType(TupleType $node): mixed;
+    public function visitNonEmptyArrayType(NonEmptyArrayType $node): mixed;
+    public function visitEnumType(EnumType $node): mixed;
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EffectPHP\Schema\Metadata;
 
-use EffectPHP\Schema\SchemaInterface;
+use EffectPHP\Schema\Contracts\SchemaInterface;
 
 interface SchemaReflectorInterface
 {

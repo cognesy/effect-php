@@ -2,35 +2,36 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Schema;
+namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
-use EffectPHP\Schema\AST\BooleanType;
+use EffectPHP\Schema\AST\StringType;
+use EffectPHP\Schema\Contracts\SchemaInterface;
 use EffectPHP\Schema\Parse\ParseError;
 use EffectPHP\Schema\Parse\TypeIssue;
 
 /**
- * Boolean schema implementation using core Effects
+ * String schema implementation using core Effects
  * 
- * @extends BaseSchema<bool, mixed>
+ * @extends BaseSchema<string, mixed>
  */
-final class BooleanSchema extends BaseSchema
+final class StringSchema extends BaseSchema
 {
     public function __construct(array $annotations = [])
     {
-        parent::__construct(new BooleanType($annotations));
+        parent::__construct(new StringType($annotations));
     }
 
     /**
      * @param mixed $input
-     * @return Effect<never, \Throwable, bool>
+     * @return Effect<never, \Throwable, string>
      */
     public function decode(mixed $input): Effect
     {
-        if (!is_bool($input)) {
+        if (!is_string($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('boolean', $input, [], 'Expected boolean')
+                new TypeIssue('string', $input, [], 'Expected string')
             ]));
         }
 
@@ -39,13 +40,13 @@ final class BooleanSchema extends BaseSchema
 
     /**
      * @param mixed $input
-     * @return Effect<never, \Throwable, bool>
+     * @return Effect<never, \Throwable, string>
      */
     public function encode(mixed $input): Effect
     {
-        if (!is_bool($input)) {
+        if (!is_string($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('boolean', $input, [], 'Expected boolean for encoding')
+                new TypeIssue('string', $input, [], 'Expected string for encoding')
             ]));
         }
 
@@ -53,11 +54,11 @@ final class BooleanSchema extends BaseSchema
     }
 
     /**
-     * Override annotate to handle BooleanSchema's specific constructor
+     * Override annotate to handle StringSchema's specific constructor
      */
     public function annotate(string $key, mixed $value): SchemaInterface
     {
-        return new BooleanSchema(
+        return new StringSchema(
             array_merge($this->ast->getAnnotations(), [$key => $value])
         );
     }

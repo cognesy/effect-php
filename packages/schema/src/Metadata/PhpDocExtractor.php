@@ -70,11 +70,20 @@ final class PhpDocExtractor implements MetadataExtractorInterface
     {
         $constraints = [];
 
-        // Extract array type information
-        if (preg_match('/array<([^>]+)>/', $docComment, $matches)) {
+        // Extract array type information - support array<key, value> syntax
+        if (preg_match('/array<([^,>]+),\s*([^>]+)>/', $docComment, $matches)) {
+            // array<key, value> syntax
+            $constraints['array_key_type'] = trim($matches[1]);
+            $constraints['array_value_type'] = trim($matches[2]);
+            $constraints['array_type'] = 'record';
+        } elseif (preg_match('/array<([^>]+)>/', $docComment, $matches)) {
+            // array<value> syntax
             $constraints['array_item_type'] = trim($matches[1]);
+            $constraints['array_type'] = 'sequential';
         } elseif (preg_match('/([^\[\]]+)\[\]/', $docComment, $matches)) {
+            // type[] syntax
             $constraints['array_item_type'] = trim($matches[1]);
+            $constraints['array_type'] = 'sequential';
         }
 
         return $constraints;

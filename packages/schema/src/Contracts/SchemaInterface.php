@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EffectPHP\Schema;
+namespace EffectPHP\Schema\Contracts;
 
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Schema\AST\ASTNodeInterface;
