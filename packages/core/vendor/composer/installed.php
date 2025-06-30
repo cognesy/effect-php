@@ -3,7 +3,7 @@
         'name' => 'effect-php/core',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '36f598618a2829fec525457b532545153a8e928a',
+        'reference' => '9d7f5a6a1e5ce931ca5427eaf5ed65602d346ec2',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -85,7 +85,7 @@
         'effect-php/core' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '36f598618a2829fec525457b532545153a8e928a',
+            'reference' => '9d7f5a6a1e5ce931ca5427eaf5ed65602d346ec2',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -345,6 +345,15 @@
             'provided' => array(
                 0 => '1.0|2.0|3.0',
             ),
+        ),
+        'react/promise' => array(
+            'pretty_version' => 'v3.2.0',
+            'version' => '3.2.0.0',
+            'reference' => '8a164643313c71354582dc850b42b33fa12a4b63',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../react/promise',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'sebastian/cli-parser' => array(
             'pretty_version' => '2.0.1',

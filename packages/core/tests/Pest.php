@@ -2,14 +2,8 @@
 
 declare(strict_types=1);
 
-use EffectPHP\Core\Contracts\Effect;
-use EffectPHP\Core\Either;
-use EffectPHP\Core\Eff;
-use EffectPHP\Core\Run;
-use EffectPHP\Core\Option;
 use EffectPHP\Core\Result\Result;
-use EffectPHP\Core\Runtime\RuntimeManager;
-use Pest\Expectation;
+use EffectPHP\Core\Run;
 
 /*
 |--------------------------------------------------------------------------

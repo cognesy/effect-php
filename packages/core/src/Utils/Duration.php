@@ -6,74 +6,88 @@ namespace EffectPHP\Core\Utils;
 
 readonly class Duration
 {
+    public const NANOS_PER_SECOND = 1_000_000_000;
+    public const MICROS_PER_SECOND = 1_000_000;
+    public const MILLIS_PER_SECOND = 1_000;
+    public const SECONDS_PER_MINUTE = 60;
+    public const SECONDS_PER_HOUR = 3600;
+    public const HOURS_PER_DAY = 24;
+
     private function __construct(
         private int $seconds,
-        private int $nanoseconds = 0
+        private int $nanoseconds = 0,
     ) {}
 
-    public static function seconds(int $seconds): self
-    {
-        return new self($seconds);
+    public static function zero(): self {
+        return new self(seconds: 0, nanoseconds: 0);
     }
 
-    public static function milliseconds(int $ms): self
-    {
+    public static function seconds(int $seconds): self {
+        return new self(seconds: $seconds);
+    }
+
+    public static function milliseconds(int $ms): self {
         return new self(
-            intdiv($ms, 1000),
-            ($ms % 1000) * 1_000_000
+            seconds: intdiv($ms, self::MILLIS_PER_SECOND),
+            nanoseconds: ($ms % self::MILLIS_PER_SECOND) * self::MICROS_PER_SECOND,
         );
     }
 
-    public static function microseconds(int $us): self
-    {
+    public static function microseconds(int $us): self {
         return new self(
-            intdiv($us, 1_000_000),
-            ($us % 1_000_000) * 1000
+            seconds: intdiv($us, self::MICROS_PER_SECOND),
+            nanoseconds: ($us % self::MICROS_PER_SECOND) * self::MILLIS_PER_SECOND,
         );
     }
 
-    public static function minutes(int $minutes): self
-    {
-        return new self($minutes * 60);
+    public static function minutes(int $minutes): self {
+        return new self(
+            seconds: $minutes * self::SECONDS_PER_MINUTE,
+        );
     }
 
-    public static function hours(int $hours): self
-    {
-        return new self($hours * 3600);
+    public static function hours(int $hours): self {
+        return new self($hours * self::SECONDS_PER_HOUR);
     }
 
-    public function toSeconds(): int
-    {
+    public static function days(int $days): self {
+        return new self($days * self::HOURS_PER_DAY * self::SECONDS_PER_HOUR);
+    }
+
+    public function plus(Duration $other): self {
+        $totalNanos = $this->nanoseconds + $other->nanoseconds;
+        $carrySeconds = intdiv($totalNanos, self::NANOS_PER_SECOND);
+        $remainingNanos = $totalNanos % self::NANOS_PER_SECOND;
+
+        return new self(
+            seconds: $this->seconds + $other->seconds + $carrySeconds,
+            nanoseconds: $remainingNanos,
+        );
+    }
+
+    public function times(float $factor): self {
+        $totalNanos = ($this->seconds * self::NANOS_PER_SECOND + $this->nanoseconds) * $factor;
+        $seconds = (int)($totalNanos / self::NANOS_PER_SECOND);
+        $nanos = ((int)$totalNanos) % self::NANOS_PER_SECOND;
+        return new self($seconds, $nanos);
+    }
+
+    public function isZero(): bool {
+        return $this->seconds === 0
+            && $this->nanoseconds === 0;
+    }
+
+    public function toSeconds(): int {
         return $this->seconds;
     }
 
-    public function toMilliseconds(): int
-    {
-        return $this->seconds * 1000 + intdiv($this->nanoseconds, 1_000_000);
+    public function toMilliseconds(): int {
+        return $this->seconds * self::MILLIS_PER_SECOND
+            + intdiv($this->nanoseconds, self::MICROS_PER_SECOND);
     }
 
-    public function toMicroseconds(): int
-    {
-        return $this->seconds * 1_000_000 + intdiv($this->nanoseconds, 1000);
-    }
-
-    public function plus(Duration $other): self
-    {
-        $totalNanos = $this->nanoseconds + $other->nanoseconds;
-        $carrySeconds = intdiv($totalNanos, 1_000_000_000);
-        $remainingNanos = $totalNanos % 1_000_000_000;
-
-        return new self(
-            $this->seconds + $other->seconds + $carrySeconds,
-            $remainingNanos
-        );
-    }
-
-    public function times(float $factor): self
-    {
-        $totalNanos = ($this->seconds * 1_000_000_000 + $this->nanoseconds) * $factor;
-        $seconds = (int) ($totalNanos / 1_000_000_000);
-        $nanos = ((int) $totalNanos) % 1_000_000_000;
-        return new self($seconds, $nanos);
+    public function toMicroseconds(): int {
+        return $this->seconds * self::MICROS_PER_SECOND
+            + intdiv($this->nanoseconds, self::MILLIS_PER_SECOND);
     }
 }

@@ -7,23 +7,19 @@ use EffectPHP\Core\Exceptions\InterruptedException;
 
 final readonly class Interrupt extends Cause
 {
-    public function map(callable $mapper): self
-    {
+    public function map(callable $mapper): self {
         return $this;
     }
 
-    public function toException(): \Throwable
-    {
+    public function toException(): \Throwable {
         return new InterruptedException();
     }
 
-    public function prettyPrint(): string
-    {
+    public function prettyPrint(): string {
         return "🛑 Interrupted";
     }
 
-    public function contains(string $errorType): bool
-    {
+    public function contains(string $errorType): bool {
         return InterruptedException::class === $errorType;
     }
 }

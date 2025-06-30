@@ -3,10 +3,9 @@
 namespace EffectPHP\Core;
 
 use EffectPHP\Core\Contracts\Effect;
-use EffectPHP\Core\Contracts\FiberHandle;
-use EffectPHP\Core\Contracts\Promise;
 use EffectPHP\Core\Result\Result;
-use EffectPHP\Core\Runtime\RuntimeManager;
+use React\Promise\PromiseInterface;
+use EffectPHP\RuntimeV1\RuntimeManager;
 
 class Run
 {
@@ -33,9 +32,9 @@ class Run
      *
      * @template A
      * @param Effect<never, mixed, A> $effect
-     * @return Promise<A>
+     * @return PromiseInterface<A>
      */
-    public static function promise(Effect $effect): Promise
+    public static function promise(Effect $effect): PromiseInterface
     {
         return RuntimeManager::default()->runPromise($effect);
     }
@@ -55,19 +54,19 @@ class Run
         RuntimeManager::default()->runCallback($effect, $callback);
     }
 
-    /**
-     * Fork effect and return handle for concurrent management
-     *
-     * Equivalent to EffectTS Effect.runFork()
-     *
-     * @template A
-     * @param Effect<never, mixed, A> $effect
-     * @return FiberHandle<A>
-     */
-    public static function fork(Effect $effect): FiberHandle
-    {
-        return RuntimeManager::default()->runFork($effect);
-    }
+//    /**
+//     * Fork effect and return handle for concurrent management
+//     *
+//     * Equivalent to EffectTS Effect.runFork()
+//     *
+//     * @template A
+//     * @param Effect<never, mixed, A> $effect
+//     * @return \EffectPHP\Core\RuntimeV2\Contracts\ExecutionControl<A>
+//     */
+//    public static function fork(Effect $effect): ExecutionControl
+//    {
+//        return RuntimeManager::default()->runFork($effect);
+//    }
 
     /**
      * Execute effect synchronously and return Result
@@ -90,9 +89,9 @@ class Run
      *
      * @template A
      * @param Effect<never, mixed, A> $effect
-     * @return Promise<Result<A>>
+     * @return PromiseInterface<Result<A>>
      */
-    public static function promiseResult(Effect $effect): Promise
+    public static function promiseResult(Effect $effect): PromiseInterface
     {
         return RuntimeManager::default()->runPromiseResult($effect);
     }

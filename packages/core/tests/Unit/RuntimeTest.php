@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Eff;
-use EffectPHP\Core\Run;
 use EffectPHP\Core\Exceptions\ServiceNotFoundException;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Result\Result;
-use EffectPHP\Core\Runtime\RuntimeManager;
+use EffectPHP\Core\Run;
 
 describe('Runtime', function () {
     
@@ -38,7 +36,7 @@ describe('Runtime', function () {
             
             expect($result)->toBeInstanceOf(Result::class)
                 ->and($result->isSuccess())->toBeTrue()
-                ->and($result->fold(fn($cause) => null, fn($r) => $r))->toBe(42);
+                ->and($result->getValueOrNull())->toBe(42);
         });
         
         it('returns Left for failed effects', function () {
@@ -49,7 +47,7 @@ describe('Runtime', function () {
             expect($result)->toBeInstanceOf(Result::class)
                 ->and($result->isFailure())->toBeTrue();
             
-            $error = $result->fold(fn($cause) => $cause->error, fn($r) => null);
+            $error = $result->getErrorOrNull();
             expect($error)->toBeInstanceOf(\RuntimeException::class)
                 ->and($error->getMessage())->toBe('Test error');
         });
@@ -60,7 +58,7 @@ describe('Runtime', function () {
             $result = Run::syncResult($effect);
             
             expect($result->isSuccess())->toBeTrue()
-                ->and($result->fold(fn($cause) => null, fn($r) => $r))->toBe(42);
+                ->and($result->getValueOrNull())->toBe(42);
         });
         
         it('catches exceptions in synchronous computations', function () {
@@ -69,7 +67,7 @@ describe('Runtime', function () {
             $result = Run::syncResult($effect);
             
             expect($result->isFailure())->toBeTrue();
-            $error = $result->fold(fn($cause) => $cause->error, fn($r) => null);
+            $error = $result->getErrorOrNull();
             expect($error)->toBeInstanceOf(\LogicException::class);
         });
     });

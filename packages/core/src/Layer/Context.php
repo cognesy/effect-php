@@ -1,10 +1,8 @@
 <?php
-
 declare(strict_types=1);
 
 namespace EffectPHP\Core\Layer;
 
-// Ensure required exception classes are loaded
 use EffectPHP\Core\Option;
 use EffectPHP\Core\Exceptions\ServiceNotFoundException;
 
@@ -17,8 +15,7 @@ final readonly class Context
 {
     private function __construct(private array $services = []) {}
 
-    public static function empty(): self
-    {
+    public static function empty(): self {
         return new self();
     }
 
@@ -28,8 +25,7 @@ final readonly class Context
      * @param T $service
      * @return Context<R&T>
      */
-    public function withService(string $tag, object $service): self
-    {
+    public function withService(string $tag, object $service): self {
         return new self([...$this->services, $tag => $service]);
     }
 
@@ -39,16 +35,14 @@ final readonly class Context
      * @return T
      * @throws ServiceNotFoundException
      */
-    public function getService(string $tag): object
-    {
+    public function getService(string $tag): object {
         return $this->services[$tag] ?? throw new ServiceNotFoundException($tag);
     }
 
     /**
      * @param class-string $tag
      */
-    public function hasService(string $tag): bool
-    {
+    public function hasService(string $tag): bool {
         return isset($this->services[$tag]);
     }
 
@@ -59,8 +53,7 @@ final readonly class Context
      * @param Context<R2> $other
      * @return Context<R&R2>
      */
-    public function mergeWith(Context $other): self
-    {
+    public function mergeWith(Context $other): self {
         return new self([...$this->services, ...$other->services]);
     }
 
@@ -71,8 +64,7 @@ final readonly class Context
      * @param class-string<T> $tag
      * @return Option<T>
      */
-    public function findService(string $tag): Option
-    {
+    public function findService(string $tag): Option {
         return isset($this->services[$tag])
             ? Option::some($this->services[$tag])
             : Option::none();

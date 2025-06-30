@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use EffectPHP\Core\Clock\Clock;
 use EffectPHP\Core\Clock\SystemClock;
-use EffectPHP\Core\Clock\TestClock;
-use EffectPHP\Core\Contracts\Clock;
+use EffectPHP\Core\Clock\VirtualClock;
 use EffectPHP\Core\Eff;
-use EffectPHP\Core\Run;
 use EffectPHP\Core\Layer\Layer;
+use EffectPHP\Core\Run;
 use EffectPHP\Core\Utils\Duration;
 
 describe('Time Control with Effect System', function () {
@@ -42,7 +42,7 @@ describe('Time Control with Effect System', function () {
 
     describe('TestClock Integration', function () {
         it('starts with zero time by default', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $program = $layer->provideTo(Eff::currentTimeMillis());
@@ -51,7 +51,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('starts with specified initial time', function () {
-            $testClock = new TestClock(1000);
+            $testClock = new VirtualClock(1000);
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $program = $layer->provideTo(Eff::currentTimeMillis());
@@ -60,7 +60,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('advances time when manually adjusted', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             // Advance time manually (this is TestClock-specific for testing)
@@ -72,7 +72,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('allows absolute time setting for test scenarios', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             // Set absolute time (this is TestClock-specific for testing)
@@ -84,14 +84,14 @@ describe('Time Control with Effect System', function () {
         });
 
         it('prevents time going backwards in test clock', function () {
-            $testClock = new TestClock(1000);
+            $testClock = new VirtualClock(1000);
             
             expect(fn() => $testClock->setTime(500))
                 ->toThrow(\InvalidArgumentException::class);
         });
 
         it('enables instant completion of sleep effects', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $start = microtime(true);
@@ -110,18 +110,18 @@ describe('Time Control with Effect System', function () {
 
     describe('Clock Service Integration', function () {
         it('allows Clock service override through Layer', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $program = $layer->provideTo(
                 Eff::clock()->map(fn(Clock $clock) => get_class($clock))
             );
             
-            expect($program)->toProduceValue(TestClock::class);
+            expect($program)->toProduceValue(VirtualClock::class);
         });
 
         it('provides convenient clock access methods', function () {
-            $testClock = new TestClock(5000);
+            $testClock = new VirtualClock(5000);
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $program = $layer->provideTo(Eff::currentTimeMillis());
@@ -130,7 +130,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('supports clockWith pattern for clock-dependent effects', function () {
-            $testClock = new TestClock(1000);
+            $testClock = new VirtualClock(1000);
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $program = $layer->provideTo(
@@ -145,7 +145,7 @@ describe('Time Control with Effect System', function () {
 
     describe('Time-dependent Effect Patterns', function () {
         it('enables fast testing of sleep effects with TestClock', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $start = microtime(true);
@@ -162,7 +162,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('enables testing of time-based effect sequences', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $program = $layer->provideTo(
@@ -178,7 +178,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('supports deterministic time-based testing', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             $events = [];
@@ -201,7 +201,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('enables testing of complex timing scenarios', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $layer = Layer::fromValue($testClock, Clock::class);
             
             // Simulate a process that measures its own execution time
@@ -232,7 +232,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('TestClock implements Clock interface correctly', function () {
-            $clock = new TestClock(1000);
+            $clock = new VirtualClock(1000);
             
             expect($clock)->toBeInstanceOf(Clock::class);
             expect($clock->currentTimeMillis())->toBe(1000);
@@ -240,7 +240,7 @@ describe('Time Control with Effect System', function () {
         });
 
         it('Clock sleep method works with continuation pattern', function () {
-            $testClock = new TestClock();
+            $testClock = new VirtualClock();
             $executed = false;
             
             // Test the continuation-based sleep interface

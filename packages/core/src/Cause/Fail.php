@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace EffectPHP\Core\Cause;
@@ -17,24 +16,20 @@ final readonly class Fail extends Cause
     /**
      * @psalm-return self<Throwable>
      */
-    public function map(callable $mapper): self
-    {
+    public function map(callable $mapper): self {
         return new Fail($mapper($this->error));
     }
 
-    public function toException(): Throwable
-    {
+    public function toException(): Throwable {
         return $this->error;
     }
 
-    public function prettyPrint(): string
-    {
+    public function prettyPrint(): string {
         return "💥 Failure: {$this->error->getMessage()}\n" .
-               "   at {$this->error->getFile()}:{$this->error->getLine()}";
+            "   at {$this->error->getFile()}:{$this->error->getLine()}";
     }
 
-    public function contains(string $errorType): bool
-    {
+    public function contains(string $errorType): bool {
         return $this->error instanceof $errorType;
     }
 }

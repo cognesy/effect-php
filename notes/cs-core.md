@@ -4,8 +4,6 @@
 
 - `Eff::succeed(mixed $value): Effect<never, never, A>` - Lift a pure value.
 - `Eff::fail(Throwable $error): Effect<never, E, never>` - Create a failed effect.
-- `Eff::sync(callable(): A $computation): Effect<never, Throwable, A>` - Lift a synchronous computation.
-- `Eff::async(callable(callable): void $register): Effect<never, Throwable, A>` - Lift an async computation.
 - `Eff::service(string $serviceTag): Effect<R, ServiceNotFoundException, T>` - Access a service from the context.
 - `Eff::clock(): Effect<Clock, ServiceNotFoundException, Clock>` - Access the Clock service.
 - `Eff::currentTimeMillis(): Effect<Clock, ServiceNotFoundException, int>` - Get current time.
@@ -13,13 +11,13 @@
 - `Eff::allInParallel(array $effects): Effect<R, E, A[]>` - Run effects in parallel.
 - `Eff::raceAll(array $effects): Effect<R, E, A>` - Race multiple effects.
 - `Eff::sleepFor(Duration $duration): Effect<Clock, never, void>` - Sleep for a duration.
-- `Eff::never(): Effect<never, never, never>` - An effect that never completes.
 - `Eff::when(bool $condition, Effect $effect): Effect<R, E, A|null>` - Conditional effect.
 - `Eff::fromOption(Option $option, Throwable $whenEmpty): Effect<never, Throwable, A>` - Option to Effect.
 - `Eff::fromEither(Either $either): Effect<never, L, R>` - Either to Effect.
 - `Eff::scoped(callable(Scope): Effect $scoped): Effect<R, E, A>` - Create a scoped effect.
-- `Run::sync(Effect $effect): A` - Execute an effect synchronously.
-- `Run::syncResult(Effect $effect): Either<E, A>` - Execute an effect safely.
+- `Eff::never(): Effect<never, never, never>` - An effect that never completes.
+- `Eff::sync(callable(): A $computation): Effect<never, Throwable, A>` - Lift a synchronous computation.
+- `Eff::async(callable(callable): void $register): Effect<never, Throwable, A>` - Lift an async computation.
 
 ## Effect - The Core Interface
 
@@ -38,6 +36,11 @@
 - `->zipWithPar(Effect ...$others): Effect<R, E, array{A, B}>` - Combine results in parallel.
 - `->raceWith(Effect ...$competitors): Effect<R, E, A|B>` - Race effects.
 
+## Run - Runner
+
+- `Run::sync(Effect $effect): A` - Execute an effect synchronously.
+- `Run::syncResult(Effect $effect): Either<E, A>` - Execute an effect safely.
+
 ## Option - Optional Values
 
 - `Option::some(mixed $value): Option<A>` - A value is present.
@@ -48,6 +51,11 @@
 - `->whenNone(mixed $default): A` - Get value or default.
 - `->otherwiseUse(Option $alternative): Option<A>` - Use an alternative option.
 - `->toEffect(Throwable $whenEmpty): Effect<never, E, A>` - Convert to an Effect.
+
+## Result - Success or Failure
+
+- `Result::success(mixed $value): Result<never, R>` - A successful result.
+- `Result::failure(Throwable $error): Result<L, never>` - A failed result.
 
 ## Either - Left or Right
 

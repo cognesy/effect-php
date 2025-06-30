@@ -7,12 +7,16 @@
     "autoload": {
         "psr-4": {
             "EffectPHP\\Core\\": "packages/core/src/",
+            "EffectPHP\\RuntimeV1\\": "packages/runtime-v1/src/",
+            "EffectPHP\\RuntimeV2\\": "packages/runtime-v2/src/",
             "EffectPHP\\Schema\\": "packages/schema/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
             "EffectPHP\\Core\\Tests\\": "tests/",
+            "EffectPHP\\RuntimeV1\\Tests\\": "packages/runtime-v1/tests/",
+            "EffectPHP\\RuntimeV2\\Tests\\": "packages/runtime-v2/tests/",
             "EffectPHP\\Schema\\Tests\\": "packages/schema/tests/"
         }
     },
@@ -23,7 +27,8 @@
         }
     ],
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "react/promise": "^3.2"
     },
     "require-dev": {
         "pestphp/pest": "^2.0",

@@ -3,10 +3,9 @@
 declare(strict_types=1);
 
 use EffectPHP\Core\Eff;
-use EffectPHP\Core\Fiber\FiberScheduler;
 use EffectPHP\Core\Layer\Context;
 use EffectPHP\Core\Result\Result;
-use EffectPHP\Core\Runtime\FiberRuntime;
+use Fiber\FiberScheduler;
 
 describe('FiberRuntime', function () {
     
@@ -40,7 +39,7 @@ describe('FiberRuntime', function () {
         
         expect($result)->toBeInstanceOf(Result::class)
             ->and($result->isSuccess())->toBeTrue()
-            ->and($result->fold(fn($cause) => null, fn($r) => $r))->toBe(100);
+            ->and($result->getValueOrNull())->toBe(100);
     });
     
     it('returns Result for runSafely with failure', function () {
@@ -52,7 +51,7 @@ describe('FiberRuntime', function () {
         expect($result)->toBeInstanceOf(Result::class)
             ->and($result->isFailure())->toBeTrue();
         
-        $error = $result->fold(fn($cause) => $cause->error, fn($r) => null);
+        $error = $result->getErrorOrNull();
         expect($error)->toBeInstanceOf(\LogicException::class)
             ->and($error->getMessage())->toBe('Logic error');
     });

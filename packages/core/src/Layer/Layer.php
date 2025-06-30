@@ -1,15 +1,13 @@
 <?php
-
 declare(strict_types=1);
 
 namespace EffectPHP\Core\Layer;
 
-// Ensure required classes are loaded
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Eff;
 
 /**
- * Declarative service construction with superior composition
+ * Declarative service construction
  *
  * @template RIn Input requirements
  * @template E of \Throwable Construction errors
@@ -31,10 +29,9 @@ final readonly class Layer
      *
      * @psalm-return self<mixed, \Throwable, mixed>
      */
-    public static function fromEffect(Effect $effect, string $tag): self
-    {
+    public static function fromEffect(Effect $effect, string $tag): self {
         return new self(
-            $effect->map(fn($service) => Context::empty()->withService($tag, $service))
+            $effect->map(fn($service) => Context::empty()->withService($tag, $service)),
         );
     }
 
@@ -46,8 +43,7 @@ final readonly class Layer
      * @param class-string<T> $tag
      * @return Layer<never, \Throwable, Context<T>>
      */
-    public static function fromFactory(callable $factory, string $tag): self
-    {
+    public static function fromFactory(callable $factory, string $tag): self {
         return self::fromEffect(Eff::sync($factory), $tag);
     }
 
@@ -61,13 +57,11 @@ final readonly class Layer
      *
      * @psalm-return self<mixed, \Throwable, Context<T>>
      */
-    public static function fromValue(object $service, string $tag): self
-    {
+    public static function fromValue(object $service, string $tag): self {
         return self::fromEffect(Eff::succeed($service), $tag);
     }
 
-    public function build(): Effect
-    {
+    public function build(): Effect {
         return $this->builder;
     }
 
@@ -82,11 +76,10 @@ final readonly class Layer
      *
      * @psalm-return self<mixed, \Throwable, mixed>
      */
-    public function combineWith(Layer $other): self
-    {
+    public function combineWith(Layer $other): self {
         return new self(
             Eff::allInParallel([$this->build(), $other->build()])
-                ->map(fn($contexts) => $contexts[0]->mergeWith($contexts[1]))
+               ->map(fn($contexts) => $contexts[0]->mergeWith($contexts[1])),
         );
     }
 
@@ -103,13 +96,12 @@ final readonly class Layer
      *
      * @psalm-return self<mixed, \Throwable, mixed>
      */
-    public function andThen(Layer $other): self
-    {
+    public function andThen(Layer $other): self {
         return new self(
-            $this->build()->flatMap(fn($firstContext) =>
-                $other->build()->providedWith($firstContext)
-                    ->map(fn($secondContext) => $firstContext->mergeWith($secondContext))
-            )
+            $this->build()->flatMap(fn($firstContext) => $other
+                ->build()->providedWith($firstContext)
+                ->map(fn($secondContext) => $firstContext->mergeWith($secondContext)),
+            ),
         );
     }
 
@@ -124,8 +116,7 @@ final readonly class Layer
      *
      * @psalm-return Effect<RIn&R2, E|\Throwable, mixed>
      */
-    public function provideTo(Effect $effect): Effect
-    {
+    public function provideTo(Effect $effect): Effect {
         return $this->build()->flatMap(fn($context) => $effect->providedWith($context));
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EffectPHP\Core;
 
 use EffectPHP\Core\Contracts\Effect;
-use EffectPHP\Core\Effects\ScopeEffect;
+use EffectPHP\Core\Effects\Extras\ScopeEffect;
 use WeakMap;
 
 /**

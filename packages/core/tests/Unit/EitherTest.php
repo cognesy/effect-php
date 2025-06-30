@@ -27,85 +27,85 @@ describe('Either', function () {
     describe('map', function () {
         it('transforms Right value', function () {
             $either = Either::right(5);
-            $result = $either->map(fn($x) => $x * 2);
+            $mapped = $either->map(fn($x) => $x * 2);
             
-            $value = $result->fold(fn($cause) => null, fn($r) => $r);
-            expect($result->isRight())->toBeTrue()
+            $value = $mapped->fold(fn($cause) => null, fn($r) => $r);
+            expect($mapped->isRight())->toBeTrue()
                 ->and($value)->toBe(10);
         });
         
         it('preserves Left through transformation', function () {
             $either = Either::left('error');
-            $result = $either->map(fn($x) => $x * 2);
+            $mapped = $either->map(fn($x) => $x * 2);
             
-            expect($result->isLeft())->toBeTrue()
-                ->and($result->getLeftOrNull())->toBe('error');
+            expect($mapped->isLeft())->toBeTrue()
+                ->and($mapped->getLeftOrNull())->toBe('error');
         });
     });
     
     describe('mapLeft', function () {
         it('transforms Left value', function () {
             $either = Either::left('error');
-            $result = $either->mapLeft(fn($e) => strtoupper($e));
+            $mapped = $either->mapLeft(fn($e) => strtoupper($e));
             
-            expect($result->isLeft())->toBeTrue()
-                ->and($result->getLeftOrNull())->toBe('ERROR');
+            expect($mapped->isLeft())->toBeTrue()
+                ->and($mapped->getLeftOrNull())->toBe('ERROR');
         });
         
         it('preserves Right through left transformation', function () {
             $either = Either::right(42);
-            $result = $either->mapLeft(fn($e) => strtoupper($e));
+            $mapped = $either->mapLeft(fn($e) => strtoupper($e));
             
-            expect($result->isRight())->toBeTrue()
-                ->and($result->getRightOrNull())->toBe(42);
+            expect($mapped->isRight())->toBeTrue()
+                ->and($mapped->getRightOrNull())->toBe(42);
         });
     });
     
     describe('flatMap', function () {
         it('chains Right transformations', function () {
             $either = Either::right(5);
-            $result = $either->flatMap(fn($x) => Either::right($x * 2));
+            $mapped = $either->flatMap(fn($x) => Either::right($x * 2));
             
-            expect($result->isRight())->toBeTrue()
-                ->and($result->getRightOrNull())->toBe(10);
+            expect($mapped->isRight())->toBeTrue()
+                ->and($mapped->getRightOrNull())->toBe(10);
         });
         
         it('short-circuits on Left', function () {
             $either = Either::left('error');
-            $result = $either->flatMap(fn($x) => Either::right($x * 2));
+            $mapped = $either->flatMap(fn($x) => Either::right($x * 2));
             
-            expect($result->isLeft())->toBeTrue()
-                ->and($result->getLeftOrNull())->toBe('error');
+            expect($mapped->isLeft())->toBeTrue()
+                ->and($mapped->getLeftOrNull())->toBe('error');
         });
         
         it('propagates inner Left', function () {
             $either = Either::right(5);
-            $result = $either->flatMap(fn($x) => Either::left('inner error'));
+            $mapped = $either->flatMap(fn($x) => Either::left('inner error'));
             
-            expect($result->isLeft())->toBeTrue()
-                ->and($result->getLeftOrNull())->toBe('inner error');
+            expect($mapped->isLeft())->toBeTrue()
+                ->and($mapped->getLeftOrNull())->toBe('inner error');
         });
     });
     
     describe('fold', function () {
         it('applies left function to Left', function () {
             $either = Either::left('error');
-            $result = $either->fold(
+            $mapped = $either->fold(
                 fn($l) => "Error: $l",
                 fn($r) => "Success: $r"
             );
             
-            expect($result)->toBe('Error: error');
+            expect($mapped)->toBe('Error: error');
         });
         
         it('applies right function to Right', function () {
             $either = Either::right(42);
-            $result = $either->fold(
+            $mapped = $either->fold(
                 fn($l) => "Error: $l",
                 fn($r) => "Success: $r"
             );
             
-            expect($result)->toBe('Success: 42');
+            expect($mapped)->toBe('Success: 42');
         });
     });
     
@@ -136,9 +136,9 @@ describe('Either', function () {
     describe('functor laws for Right', function () {
         it('preserves identity', function () {
             $either = Either::right(42);
-            $result = $either->map(fn($x) => $x);
+            $mapped = $either->map(fn($x) => $x);
             
-            expect($result->fold(fn($cause) => null, fn($r) => $r))->toBe(42);
+            expect($mapped->fold(fn($cause) => null, fn($r) => $r))->toBe(42);
         });
         
         it('preserves composition', function () {
@@ -168,9 +168,9 @@ describe('Either', function () {
         
         it('right identity', function () {
             $either = Either::right(42);
-            $result = $either->flatMap(fn($x) => Either::right($x));
+            $mapped = $either->flatMap(fn($x) => Either::right($x));
             
-            expect($result->fold(fn($cause) => null, fn($r) => $r))
+            expect($mapped->fold(fn($cause) => null, fn($r) => $r))
                 ->toBe($either->fold(fn($cause) => null, fn($r) => $r));
         });
         
@@ -221,13 +221,13 @@ describe('Either', function () {
                 
             $double = fn($x) => Either::right($x * 2);
             
-            $result1 = $parseNumber('42')->flatMap($double);
-            $result2 = $parseNumber('abc')->flatMap($double);
+            $mapped1 = $parseNumber('42')->flatMap($double);
+            $mapped2 = $parseNumber('abc')->flatMap($double);
             
-            expect($result1->isRight())->toBeTrue()
-                ->and($result1->getRightOrNull())->toBe(84)
-                ->and($result2->isLeft())->toBeTrue()
-                ->and($result2->getLeftOrNull())->toBe('Not a number: abc');
+            expect($mapped1->isRight())->toBeTrue()
+                ->and($mapped1->getRightOrNull())->toBe(84)
+                ->and($mapped2->isLeft())->toBeTrue()
+                ->and($mapped2->getLeftOrNull())->toBe('Not a number: abc');
         });
     });
 });

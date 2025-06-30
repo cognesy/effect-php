@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace EffectPHP\Core\Cause;
@@ -21,29 +20,25 @@ abstract readonly class Cause
      *
      * @psalm-return Fail<Throwable>
      */
-    public static function fail(Throwable $error): Fail
-    {
+    public static function fail(Throwable $error): Fail {
         return new Fail($error);
     }
 
-    public static function interrupt(): Interrupt
-    {
+    public static function interrupt(): Interrupt {
         return new Interrupt();
     }
 
     /**
      * @param Cause[] $causes
      */
-    public static function parallel(array $causes): Parallel
-    {
+    public static function parallel(array $causes): Parallel {
         return new Parallel($causes);
     }
 
     /**
      * @param Cause[] $causes
      */
-    public static function sequential(array $causes): Sequential
-    {
+    public static function sequential(array $causes): Sequential {
         return new Sequential($causes);
     }
 
@@ -53,8 +48,7 @@ abstract readonly class Cause
      * @param Cause $other
      * @return Cause
      */
-    public function and(Cause $other): Cause
-    {
+    public function and(Cause $other): Cause {
         return self::parallel([$this, $other]);
     }
 
@@ -79,4 +73,3 @@ abstract readonly class Cause
      */
     abstract public function contains(string $errorType): bool;
 }
-
