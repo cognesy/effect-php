@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -14,19 +12,16 @@ use EffectPHP\Schema\AST\AnyType;
  */
 final class AnySchema extends BaseSchema
 {
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct(new AnyType());
     }
 
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         // Accept anything without validation
         return Eff::succeed($input);
     }
 
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         // Accept anything without validation
         return Eff::succeed($input);
     }

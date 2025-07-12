@@ -1,7 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
+use EffectPHP\Schema\Codec;
 use EffectPHP\Schema\Schema;
 
 describe('Collection Schema Types', function () {
@@ -134,7 +133,7 @@ describe('Collection Schema Types', function () {
     describe('Integration with helper methods', function () {
         it('works with decodeUnknownEither for tuple', function () {
             $tupleSchema = Schema::tuple(Schema::string(), Schema::number());
-            $decoder = Schema::decodeUnknownResult($tupleSchema);
+            $decoder = Codec::decodeUnknownResult($tupleSchema);
             
             $result = $decoder(["hello", 42]);
             
@@ -145,7 +144,7 @@ describe('Collection Schema Types', function () {
 
         it('works with decodeUnknownEither for nonEmptyArray', function () {
             $nonEmptySchema = Schema::nonEmptyArray(Schema::string());
-            $decoder = Schema::decodeUnknownResult($nonEmptySchema);
+            $decoder = Codec::decodeUnknownResult($nonEmptySchema);
             
             $result = $decoder(["a", "b", "c"]);
             
@@ -156,7 +155,7 @@ describe('Collection Schema Types', function () {
 
         it('fails gracefully with Either for invalid data', function () {
             $tupleSchema = Schema::tuple(Schema::string());
-            $decoder = Schema::decodeUnknownResult($tupleSchema);
+            $decoder = Codec::decodeUnknownResult($tupleSchema);
             
             $result = $decoder(["too", "many", "elements"]);
             

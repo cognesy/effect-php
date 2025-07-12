@@ -1,8 +1,8 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Parse;
+
+use EffectPHP\Schema\Contracts\ParseIssueInterface;
 
 final class RefinementIssue implements ParseIssueInterface
 {
@@ -10,31 +10,26 @@ final class RefinementIssue implements ParseIssueInterface
         private readonly string $refinement,
         private readonly mixed $actual,
         private readonly array $path = [],
-        private readonly string $message = 'Refinement validation failed'
+        private readonly string $message = 'Refinement validation failed',
     ) {}
 
-    public function getTag(): string
-    {
+    public function getTag(): string {
         return 'Refinement';
     }
 
-    public function getPath(): array
-    {
+    public function getPath(): array {
         return $this->path;
     }
 
-    public function getMessage(): string
-    {
+    public function getMessage(): string {
         return "{$this->message}: {$this->refinement}";
     }
 
-    public function getActual(): mixed
-    {
+    public function getActual(): mixed {
         return $this->actual;
     }
 
-    public function getExpected(): mixed
-    {
+    public function getExpected(): mixed {
         return $this->refinement;
     }
 }

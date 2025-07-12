@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -13,13 +11,12 @@ use EffectPHP\Schema\Parse\TypeIssue;
 
 /**
  * String schema implementation using core Effects
- * 
+ *
  * @extends BaseSchema<string, mixed>
  */
 final class StringSchema extends BaseSchema
 {
-    public function __construct(array $annotations = [])
-    {
+    public function __construct(array $annotations = []) {
         parent::__construct(new StringType($annotations));
     }
 
@@ -27,11 +24,10 @@ final class StringSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, string>
      */
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         if (!is_string($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('string', $input, [], 'Expected string')
+                new TypeIssue('string', $input, [], 'Expected string'),
             ]));
         }
 
@@ -42,11 +38,10 @@ final class StringSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, string>
      */
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         if (!is_string($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('string', $input, [], 'Expected string for encoding')
+                new TypeIssue('string', $input, [], 'Expected string for encoding'),
             ]));
         }
 
@@ -56,10 +51,9 @@ final class StringSchema extends BaseSchema
     /**
      * Override annotate to handle StringSchema's specific constructor
      */
-    public function annotate(string $key, mixed $value): SchemaInterface
-    {
+    public function annotate(string $key, mixed $value): SchemaInterface {
         return new StringSchema(
-            array_merge($this->ast->getAnnotations(), [$key => $value])
+            array_merge($this->ast->getAnnotations(), [$key => $value]),
         );
     }
 }

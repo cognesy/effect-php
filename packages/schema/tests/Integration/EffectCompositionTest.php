@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-use EffectPHP\Schema\Schema;
 use EffectPHP\Core\Eff;
 use EffectPHP\Core\Run;
 use EffectPHP\Schema\Parse\ParseError;
+use EffectPHP\Schema\Schema;
 
 describe('Effect Composition and Error Handling Integration', function () {
     

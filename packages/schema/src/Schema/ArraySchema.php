@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -13,7 +11,7 @@ use EffectPHP\Schema\Parse\TypeIssue;
 
 /**
  * Array schema implementation using core Effects
- * 
+ *
  * @template T
  * @extends BaseSchema<T[], mixed>
  */
@@ -21,8 +19,7 @@ final class ArraySchema extends BaseSchema
 {
     private SchemaInterface $itemSchema;
 
-    public function __construct(SchemaInterface $itemSchema, array $annotations = [])
-    {
+    public function __construct(SchemaInterface $itemSchema, array $annotations = []) {
         $this->itemSchema = $itemSchema;
         parent::__construct(new ArrayType($itemSchema->getAST(), $annotations));
     }
@@ -31,11 +28,10 @@ final class ArraySchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, array>
      */
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], 'Expected array')
+                new TypeIssue('array', $input, [], 'Expected array'),
             ]));
         }
 
@@ -53,11 +49,10 @@ final class ArraySchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, array>
      */
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], 'Expected array for encoding')
+                new TypeIssue('array', $input, [], 'Expected array for encoding'),
             ]));
         }
 
@@ -74,11 +69,10 @@ final class ArraySchema extends BaseSchema
     /**
      * Override annotate to handle ArraySchema's specific constructor
      */
-    public function annotate(string $key, mixed $value): SchemaInterface
-    {
+    public function annotate(string $key, mixed $value): SchemaInterface {
         return new ArraySchema(
             $this->itemSchema,
-            array_merge($this->ast->getAnnotations(), [$key => $value])
+            array_merge($this->ast->getAnnotations(), [$key => $value]),
         );
     }
 }

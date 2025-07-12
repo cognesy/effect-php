@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -13,7 +11,7 @@ use EffectPHP\Schema\Parse\TypeIssue;
 
 /**
  * Collection schema with fluent constraint support
- * 
+ *
  * @template T
  * @extends BaseSchema<T[], mixed>
  */
@@ -24,8 +22,7 @@ final class CollectionSchema extends BaseSchema
     private ?int $maxSize = null;
     private ?int $exactSize = null;
 
-    public function __construct(SchemaInterface $itemSchema, array $annotations = [])
-    {
+    public function __construct(SchemaInterface $itemSchema, array $annotations = []) {
         $this->itemSchema = $itemSchema;
         parent::__construct(new ArrayType($itemSchema->getAST(), $annotations));
     }
@@ -34,32 +31,31 @@ final class CollectionSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, array>
      */
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], 'Expected array')
+                new TypeIssue('array', $input, [], 'Expected array'),
             ]));
         }
 
         // Check size constraints
         $size = count($input);
-        
+
         if ($this->exactSize !== null && $size !== $this->exactSize) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], "Expected exactly {$this->exactSize} items, got {$size}")
+                new TypeIssue('array', $input, [], "Expected exactly {$this->exactSize} items, got {$size}"),
             ]));
         }
 
         if ($this->minSize !== null && $size < $this->minSize) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], "Expected at least {$this->minSize} items, got {$size}")
+                new TypeIssue('array', $input, [], "Expected at least {$this->minSize} items, got {$size}"),
             ]));
         }
 
         if ($this->maxSize !== null && $size > $this->maxSize) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], "Expected at most {$this->maxSize} items, got {$size}")
+                new TypeIssue('array', $input, [], "Expected at most {$this->maxSize} items, got {$size}"),
             ]));
         }
 
@@ -77,32 +73,31 @@ final class CollectionSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, array>
      */
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], 'Expected array for encoding')
+                new TypeIssue('array', $input, [], 'Expected array for encoding'),
             ]));
         }
 
         // Check size constraints (same as decode)
         $size = count($input);
-        
+
         if ($this->exactSize !== null && $size !== $this->exactSize) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], "Expected exactly {$this->exactSize} items, got {$size}")
+                new TypeIssue('array', $input, [], "Expected exactly {$this->exactSize} items, got {$size}"),
             ]));
         }
 
         if ($this->minSize !== null && $size < $this->minSize) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], "Expected at least {$this->minSize} items, got {$size}")
+                new TypeIssue('array', $input, [], "Expected at least {$this->minSize} items, got {$size}"),
             ]));
         }
 
         if ($this->maxSize !== null && $size > $this->maxSize) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', $input, [], "Expected at most {$this->maxSize} items, got {$size}")
+                new TypeIssue('array', $input, [], "Expected at most {$this->maxSize} items, got {$size}"),
             ]));
         }
 
@@ -119,16 +114,14 @@ final class CollectionSchema extends BaseSchema
     /**
      * Fluent API: Require at least one element (non-empty)
      */
-    public function nonEmpty(): self
-    {
+    public function nonEmpty(): self {
         return $this->min(1);
     }
 
     /**
      * Fluent API: Set minimum size constraint
      */
-    public function min(int $minSize): self
-    {
+    public function min(int $minSize): self {
         $clone = clone $this;
         $clone->minSize = $minSize;
         return $clone->annotate('minItems', $minSize);
@@ -137,8 +130,7 @@ final class CollectionSchema extends BaseSchema
     /**
      * Fluent API: Set maximum size constraint
      */
-    public function max(int $maxSize): self
-    {
+    public function max(int $maxSize): self {
         $clone = clone $this;
         $clone->maxSize = $maxSize;
         return $clone->annotate('maxItems', $maxSize);
@@ -147,8 +139,7 @@ final class CollectionSchema extends BaseSchema
     /**
      * Fluent API: Set exact size constraint
      */
-    public function length(int $exactSize): self
-    {
+    public function length(int $exactSize): self {
         $clone = clone $this;
         $clone->exactSize = $exactSize;
         return $clone->annotate('exactItems', $exactSize);
@@ -157,31 +148,30 @@ final class CollectionSchema extends BaseSchema
     /**
      * Fluent API: Set size range constraint
      */
-    public function between(int $minSize, int $maxSize): self
-    {
+    public function between(int $minSize, int $maxSize): self {
         $clone = clone $this;
         $clone->minSize = $minSize;
         $clone->maxSize = $maxSize;
         return $clone
             ->annotate('minItems', $minSize)
-            ->annotate('maxItems', $maxSize);
+            ->annotate('maxItems', $maxSize)
+        ;
     }
 
     /**
      * Override annotate to handle CollectionSchema's specific constructor
      */
-    public function annotate(string $key, mixed $value): SchemaInterface
-    {
+    public function annotate(string $key, mixed $value): SchemaInterface {
         $clone = new CollectionSchema(
             $this->itemSchema,
-            array_merge($this->ast->getAnnotations(), [$key => $value])
+            array_merge($this->ast->getAnnotations(), [$key => $value]),
         );
-        
+
         // Preserve constraints
         $clone->minSize = $this->minSize;
         $clone->maxSize = $this->maxSize;
         $clone->exactSize = $this->exactSize;
-        
+
         return $clone;
     }
 }

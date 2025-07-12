@@ -1,8 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-use EffectPHP\Core\Eff;
 use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
 use EffectPHP\Schema\Schema\CollectionSchema;

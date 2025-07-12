@@ -1,7 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
+use EffectPHP\Schema\Codec;
 use EffectPHP\Schema\Schema;
 
 describe('String Filter Methods', function () {
@@ -171,7 +170,7 @@ describe('String Filter Methods', function () {
     describe('integration with helper methods', function () {
         it('works with decodeUnknownEither', function () {
             $schema = Schema::startsWith(Schema::string(), "hello");
-            $decoder = Schema::decodeUnknownResult($schema);
+            $decoder = Codec::decodeUnknownResult($schema);
             
             $validResult = $decoder("hello world");
             expect($validResult->isSuccess())->toBeTrue();
@@ -184,7 +183,7 @@ describe('String Filter Methods', function () {
 
         it('works with encodeEither', function () {
             $schema = Schema::trimmed(Schema::string());
-            $encoder = Schema::encodeResult($schema);
+            $encoder = Codec::encodeResult($schema);
             
             $validResult = $encoder("no spaces");
             expect($validResult->isSuccess())->toBeTrue();

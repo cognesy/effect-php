@@ -2,7 +2,6 @@
 
 use EffectPHP\Core\Run;
 use EffectPHP\Schema\Schema;
-use EffectPHP\Core\Eff;
 
 it('can create and validate a string schema', function () {
     $schema = Schema::string();

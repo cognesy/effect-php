@@ -1,10 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-use EffectPHP\Schema\Schema;
-use EffectPHP\Core\Eff;
 use EffectPHP\Core\Run;
+use EffectPHP\Schema\Schema;
 
 describe('Bidirectional Transformation Integration', function () {
     
@@ -139,7 +136,7 @@ describe('Bidirectional Transformation Integration', function () {
     });
 
     it('chains multiple transformations using Effect composition', function () {
-        // Transform: JSON string → Array → Normalized Array → Validated Object
+        // Transform: JSON string → Array → Normalized Array → Validated\Validated Object
         $jsonProcessingPipeline = Schema::transform(
             Schema::string(), // JSON string input
             Schema::array(Schema::string()), // Normalized array output

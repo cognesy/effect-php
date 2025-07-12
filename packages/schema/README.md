@@ -19,7 +19,6 @@ composer require effect-php/schema
 ## Quick Start
 
 ```php
-use EffectPHP\Core\Eff;
 use EffectPHP\Schema\Schema;
 
 // Basic string validation

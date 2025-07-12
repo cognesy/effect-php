@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -20,26 +18,24 @@ final class NonEmptyArraySchema extends BaseSchema
 {
     private SchemaInterface $itemSchema;
 
-    public function __construct(SchemaInterface $itemSchema)
-    {
+    public function __construct(SchemaInterface $itemSchema) {
         $this->itemSchema = $itemSchema;
-        
+
         parent::__construct(new NonEmptyArrayType($itemSchema->getAST()));
     }
 
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         // Must be an array
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', gettype($input), [])
+                new TypeIssue('array', gettype($input), []),
             ]));
         }
 
         // Must not be empty
         if (empty($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('non-empty array', 'empty array', [])
+                new TypeIssue('non-empty array', 'empty array', []),
             ]));
         }
 
@@ -49,7 +45,7 @@ final class NonEmptyArraySchema extends BaseSchema
 
         foreach ($input as $index => $item) {
             $itemResult = Run::syncResult($this->itemSchema->decode($item));
-            
+
             if ($itemResult->isFailure()) {
                 $errors[] = new TypeIssue('valid item', gettype($item), [(string)$index]);
                 continue;
@@ -65,19 +61,18 @@ final class NonEmptyArraySchema extends BaseSchema
         return Eff::succeed($validatedItems);
     }
 
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         // Must be an array
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', gettype($input), [])
+                new TypeIssue('array', gettype($input), []),
             ]));
         }
 
         // Must not be empty
         if (empty($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('non-empty array', 'empty array', [])
+                new TypeIssue('non-empty array', 'empty array', []),
             ]));
         }
 
@@ -87,7 +82,7 @@ final class NonEmptyArraySchema extends BaseSchema
 
         foreach ($input as $index => $item) {
             $itemResult = Run::syncResult($this->itemSchema->encode($item));
-            
+
             if ($itemResult->isFailure()) {
                 $errors[] = new TypeIssue('encodable item', gettype($item), [(string)$index]);
                 continue;
@@ -103,8 +98,7 @@ final class NonEmptyArraySchema extends BaseSchema
         return Eff::succeed($encodedItems);
     }
 
-    public function annotate(string $key, mixed $value): SchemaInterface
-    {
+    public function annotate(string $key, mixed $value): SchemaInterface {
         $newNonEmptyArraySchema = new self($this->itemSchema);
         $newNonEmptyArraySchema->ast = $this->ast->withAnnotations([$key => $value]);
         return $newNonEmptyArraySchema;

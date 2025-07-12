@@ -1,7 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
+use EffectPHP\Schema\Codec;
 use EffectPHP\Schema\Schema;
 
 describe('Union Helper Methods', function () {
@@ -83,7 +82,7 @@ describe('Union Helper Methods', function () {
     describe('integration with helper methods', function () {
         it('works with decodeUnknownEither', function () {
             $schema = Schema::nullOr(Schema::string());
-            $decoder = Schema::decodeUnknownResult($schema);
+            $decoder = Codec::decodeUnknownResult($schema);
             
             $validResult = $decoder(null);
             expect($validResult->isSuccess())->toBeTrue();
@@ -101,7 +100,7 @@ describe('Union Helper Methods', function () {
 
         it('works with encodeEither', function () {
             $schema = Schema::nullOr(Schema::string());
-            $encoder = Schema::encodeResult($schema);
+            $encoder = Codec::encodeResult($schema);
             
             $nullResult = $encoder(null);
             expect($nullResult->isSuccess())->toBeTrue();

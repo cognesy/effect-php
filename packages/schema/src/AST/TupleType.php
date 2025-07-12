@@ -1,8 +1,9 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\AST;
+
+use EffectPHP\Schema\Contracts\ASTNodeInterface;
+use EffectPHP\Schema\Contracts\ASTVisitorInterface;
 
 /**
  * AST node for tuple types (fixed-length arrays with typed elements)
@@ -15,8 +16,7 @@ final class TupleType extends BaseASTNode
     /**
      * @param ASTNodeInterface[] $elementTypes
      */
-    public function __construct(array $elementTypes, array $annotations = [])
-    {
+    public function __construct(array $elementTypes, array $annotations = []) {
         $this->elementTypes = $elementTypes;
         parent::__construct($annotations);
     }
@@ -24,21 +24,18 @@ final class TupleType extends BaseASTNode
     /**
      * @return ASTNodeInterface[]
      */
-    public function getElementTypes(): array
-    {
+    public function getElementTypes(): array {
         return $this->elementTypes;
     }
 
-    public function accept(ASTVisitorInterface $visitor): mixed
-    {
+    public function accept(ASTVisitorInterface $visitor): mixed {
         return $visitor->visitTupleType($this);
     }
 
-    public function withAnnotations(array $annotations): self
-    {
+    public function withAnnotations(array $annotations): self {
         return new self(
             $this->elementTypes,
-            array_merge($this->annotations, $annotations)
+            array_merge($this->annotations, $annotations),
         );
     }
 }

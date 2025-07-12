@@ -1,9 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-use EffectPHP\Core\Result\Result;
 use EffectPHP\Core\Run;
+use EffectPHP\Utils\Result\Result;
 
 /*
 |--------------------------------------------------------------------------

@@ -1,17 +1,15 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Compiler;
 
-use EffectPHP\Schema\AST\ASTNodeInterface;
+use EffectPHP\Schema\Contracts\ASTNodeInterface;
+use EffectPHP\Schema\Contracts\CompilerInterface;
 
 abstract class BaseCompiler implements CompilerInterface
 {
     protected array $cache = [];
 
-    public function compile(ASTNodeInterface $ast): mixed
-    {
+    public function compile(ASTNodeInterface $ast): mixed {
         $key = $this->getCacheKey($ast);
 
         if (!isset($this->cache[$key])) {
@@ -25,8 +23,7 @@ abstract class BaseCompiler implements CompilerInterface
 
     abstract public function getTarget(): string;
 
-    protected function getCacheKey(ASTNodeInterface $ast): string
-    {
+    protected function getCacheKey(ASTNodeInterface $ast): string {
         return spl_object_hash($ast);
     }
 }

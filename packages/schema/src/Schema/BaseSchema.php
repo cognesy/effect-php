@@ -1,18 +1,15 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
 use EffectPHP\Core\Contracts\Effect;
-use EffectPHP\Core\Eff;
 use EffectPHP\Core\Run;
-use EffectPHP\Schema\AST\ASTNodeInterface;
+use EffectPHP\Schema\Contracts\ASTNodeInterface;
 use EffectPHP\Schema\Contracts\SchemaInterface;
 
 /**
  * Base schema implementation following EffectTS patterns
- * 
+ *
  * @template A The type this schema validates/produces
  * @template I The input type this schema accepts
  */
@@ -20,13 +17,11 @@ abstract class BaseSchema implements SchemaInterface
 {
     protected ASTNodeInterface $ast;
 
-    public function __construct(ASTNodeInterface $ast)
-    {
+    public function __construct(ASTNodeInterface $ast) {
         $this->ast = $ast;
     }
 
-    public function getAST(): ASTNodeInterface
-    {
+    public function getAST(): ASTNodeInterface {
         return $this->ast;
     }
 
@@ -44,11 +39,10 @@ abstract class BaseSchema implements SchemaInterface
 
     /**
      * Test if input is valid - materializes Effect at edge
-     * 
+     *
      * @param I $input
      */
-    public function is(mixed $input): bool
-    {
+    public function is(mixed $input): bool {
         // Materialize Effect to Either using runtime
         $result = Run::syncResult($this->decode($input));
         return $result->isSuccess();
@@ -56,56 +50,50 @@ abstract class BaseSchema implements SchemaInterface
 
     /**
      * Assert input is valid - materializes Effect at edge
-     * 
+     *
      * @param I $input
      * @return A
      * @throws \Throwable
      */
-    public function assert(mixed $input): mixed
-    {
+    public function assert(mixed $input): mixed {
         // Materialize Effect with runtime, throw on failure
         return Run::sync($this->decode($input));
     }
 
     /**
      * Transform this schema through a function
-     * 
+     *
      * @param callable(SchemaInterface): SchemaInterface $transform
      */
-    public function pipe(callable $transform): SchemaInterface
-    {
+    public function pipe(callable $transform): SchemaInterface {
         return $transform($this);
     }
 
     /**
      * Make this schema optional (allows null)
      */
-    public function optional(): SchemaInterface
-    {
+    public function optional(): SchemaInterface {
         return new OptionalSchema($this);
     }
 
     /**
      * Make this schema nullable (explicitly allows null)
      */
-    public function nullable(): SchemaInterface
-    {
+    public function nullable(): SchemaInterface {
         return new NullableSchema($this);
     }
 
     /**
      * Add metadata annotation to schema
      */
-    public function annotate(string $key, mixed $value): SchemaInterface
-    {
+    public function annotate(string $key, mixed $value): SchemaInterface {
         return new static($this->ast->withAnnotations([$key => $value]));
     }
 
     /**
      * Compose this schema with another
      */
-    public function compose(SchemaInterface $other): SchemaInterface
-    {
+    public function compose(SchemaInterface $other): SchemaInterface {
         return new CompositeSchema($this, $other);
     }
 }

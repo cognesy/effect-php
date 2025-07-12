@@ -1,11 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-use EffectPHP\Schema\Metadata\UniversalSchemaReflector;
-use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
-use EffectPHP\Core\Eff;
 use EffectPHP\Core\Run;
+use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
+use EffectPHP\Schema\Metadata\UniversalSchemaReflector;
 
 // Test data classes with various metadata sources
 final class SimpleUser

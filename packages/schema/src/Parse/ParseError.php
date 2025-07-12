@@ -1,9 +1,8 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Parse;
 
+use EffectPHP\Schema\Contracts\ParseIssueInterface;
 use Exception;
 
 final class ParseError extends Exception
@@ -13,7 +12,7 @@ final class ParseError extends Exception
      */
     public function __construct(
         private readonly array $issues,
-        string $message = 'Schema validation failed'
+        string $message = 'Schema validation failed',
     ) {
         parent::__construct($message);
     }
@@ -21,13 +20,11 @@ final class ParseError extends Exception
     /**
      * @return ParseIssueInterface[]
      */
-    public function getIssues(): array
-    {
+    public function getIssues(): array {
         return $this->issues;
     }
 
-    public function getFormattedMessage(): string
-    {
+    public function getFormattedMessage(): string {
         $messages = [];
         foreach ($this->issues as $issue) {
             $path = empty($issue->getPath()) ? 'root' : implode('.', $issue->getPath());

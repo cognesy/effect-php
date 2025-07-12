@@ -1,12 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-use EffectPHP\Schema\Schema;
-use EffectPHP\Schema\Metadata\UniversalSchemaReflector;
-use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
-use EffectPHP\Core\Eff;
 use EffectPHP\Core\Run;
+use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
+use EffectPHP\Schema\Metadata\UniversalSchemaReflector;
+use EffectPHP\Schema\Schema;
 
 /**
  * Example classes for end-to-end testing

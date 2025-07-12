@@ -1,15 +1,14 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Metadata;
 
+use EffectPHP\Schema\Contracts\MetadataExtractorInterface;
+use EffectPHP\Schema\Contracts\PropertyMetadataInterface;
 use ReflectionProperty;
 
 final class PhpDocExtractor implements MetadataExtractorInterface
 {
-    public function extractFromProperty(ReflectionProperty $property): PropertyMetadataInterface
-    {
+    public function extractFromProperty(ReflectionProperty $property): PropertyMetadataInterface {
         $docComment = $property->getDocComment();
         if (!$docComment) {
             return new PropertyMetadata();
@@ -24,30 +23,26 @@ final class PhpDocExtractor implements MetadataExtractorInterface
             type: $this->normalizeType($type),
             nullable: $nullable,
             description: $description,
-            constraints: $constraints
+            constraints: $constraints,
         );
     }
 
-    public function canHandle(ReflectionProperty $property): bool
-    {
-        return (bool) $property->getDocComment();
+    public function canHandle(ReflectionProperty $property): bool {
+        return (bool)$property->getDocComment();
     }
 
-    public function getPriority(): int
-    {
+    public function getPriority(): int {
         return 80;
     }
 
-    private function extractVarType(string $docComment): ?string
-    {
+    private function extractVarType(string $docComment): ?string {
         if (preg_match('/@var\s+([^\s]+)/', $docComment, $matches)) {
             return trim($matches[1]);
         }
         return null;
     }
 
-    private function extractDescription(string $docComment): ?string
-    {
+    private function extractDescription(string $docComment): ?string {
         $lines = explode("\n", $docComment);
         $description = '';
 
@@ -61,13 +56,11 @@ final class PhpDocExtractor implements MetadataExtractorInterface
         return trim($description) ?: null;
     }
 
-    private function isNullable(string $docComment): bool
-    {
+    private function isNullable(string $docComment): bool {
         return str_contains($docComment, '|null') || str_contains($docComment, 'null|');
     }
 
-    private function extractConstraints(string $docComment): array
-    {
+    private function extractConstraints(string $docComment): array {
         $constraints = [];
 
         // Extract array type information - support array<key, value> syntax
@@ -89,8 +82,7 @@ final class PhpDocExtractor implements MetadataExtractorInterface
         return $constraints;
     }
 
-    private function normalizeType(?string $type): ?string
-    {
+    private function normalizeType(?string $type): ?string {
         if (!$type) {
             return null;
         }

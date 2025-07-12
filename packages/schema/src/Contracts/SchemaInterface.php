@@ -1,14 +1,11 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Contracts;
 
 use EffectPHP\Core\Contracts\Effect;
-use EffectPHP\Schema\AST\ASTNodeInterface;
 
 /**
- * Schema interface following EffectTS patterns
+ * Schema interface
  * 
  * @template A The type this schema validates/produces
  * @template I The input type this schema accepts (defaults to mixed)

@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -14,7 +12,7 @@ use EffectPHP\Schema\Parse\TypeIssue;
 
 /**
  * Object schema implementation using core Effects
- * 
+ *
  * @extends BaseSchema<array, mixed>
  */
 final class ObjectSchema extends BaseSchema
@@ -26,8 +24,7 @@ final class ObjectSchema extends BaseSchema
      * @param array<string, SchemaInterface> $properties
      * @param string[] $required
      */
-    public function __construct(array $properties, array $required = [], array $annotations = [])
-    {
+    public function __construct(array $properties, array $required = [], array $annotations = []) {
         $this->properties = $properties;
         $this->required = $required;
 
@@ -43,11 +40,10 @@ final class ObjectSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, array>
      */
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('object', $input, [], 'Expected object/array')
+                new TypeIssue('object', $input, [], 'Expected object/array'),
             ]));
         }
 
@@ -55,7 +51,7 @@ final class ObjectSchema extends BaseSchema
         foreach ($this->required as $key) {
             if (!array_key_exists($key, $input)) {
                 return Eff::fail(new ParseError([
-                    new MissingIssue([$key], "Required property '{$key}' is missing")
+                    new MissingIssue([$key], "Required property '{$key}' is missing"),
                 ]));
             }
         }
@@ -86,11 +82,10 @@ final class ObjectSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, array>
      */
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('object', $input, [], 'Expected object/array for encoding')
+                new TypeIssue('object', $input, [], 'Expected object/array for encoding'),
             ]));
         }
 

@@ -1,34 +1,14 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Core\Effects;
 
 use Closure;
 use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Traits\Combinators;
 
-/**
- * Stack-safe suspension for chaining
- *
- * @template R
- * @template E of \Throwable
- * @template A
- * @extends BaseEffect<R, E, A>
- */
-final class SuspendEffect extends BaseEffect
-{
-    public function __construct(
-        public readonly Effect $source,
-        public readonly Closure $continuation
-    ) {}
-
-    /**
-     * Chain another operation - delegate to base implementation
-     */
-    public function flatMap(callable $chain): Effect
-    {
-        // Use the default flatMap from EffectBase which creates FlatMapEffect
-        // This avoids infinite recursion in SuspendEffect continuation fusion
-        return parent::flatMap($chain);
-    }
+/** @template T */
+final class SuspendEffect implements Effect {
+    use Combinators;
+    /** @param callable():T $thunk */
+    public function __construct(public readonly Closure $thunk) {}
 }

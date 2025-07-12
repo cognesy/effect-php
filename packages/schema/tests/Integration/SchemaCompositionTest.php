@@ -1,10 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-use EffectPHP\Schema\Schema;
-use EffectPHP\Core\Eff;
 use EffectPHP\Core\Run;
+use EffectPHP\Schema\Schema;
 
 describe('Schema Composition and Extension Integration', function () {
     

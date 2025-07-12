@@ -4,8 +4,8 @@ namespace EffectPHP\AmPHP;
 
 use Amp\DeferredFuture;
 use Amp\Future;
-use EffectPHP\Core\Promise\PromiseFactoryInterface;
-use EffectPHP\Core\Promise\PromiseInterface;
+use EffectPHP\Promise\Contracts\PromiseFactoryInterface;
+use EffectPHP\Promise\Contracts\PromiseInterface;
 use function Amp\async;
 
 class AmpPromiseAdapter implements PromiseFactoryInterface

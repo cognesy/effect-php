@@ -1,8 +1,9 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\AST;
+
+use EffectPHP\Schema\Contracts\ASTNodeInterface;
+use EffectPHP\Schema\Contracts\ASTVisitorInterface;
 
 final class TransformationType extends BaseASTNode
 {
@@ -11,33 +12,28 @@ final class TransformationType extends BaseASTNode
         private readonly ASTNodeInterface $to,
         private readonly mixed $decode,
         private readonly mixed $encode,
-        array $annotations = []
+        array $annotations = [],
     ) {
         parent::__construct($annotations);
     }
 
-    public function getFrom(): ASTNodeInterface
-    {
+    public function getFrom(): ASTNodeInterface {
         return $this->from;
     }
 
-    public function getTo(): ASTNodeInterface
-    {
+    public function getTo(): ASTNodeInterface {
         return $this->to;
     }
 
-    public function getDecode(): mixed
-    {
+    public function getDecode(): mixed {
         return $this->decode;
     }
 
-    public function getEncode(): mixed
-    {
+    public function getEncode(): mixed {
         return $this->encode;
     }
 
-    public function accept(ASTVisitorInterface $visitor): mixed
-    {
+    public function accept(ASTVisitorInterface $visitor): mixed {
         return $visitor->visitTransformationType($this);
     }
 }

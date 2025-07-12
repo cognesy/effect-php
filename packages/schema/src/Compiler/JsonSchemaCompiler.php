@@ -1,14 +1,12 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Compiler;
 
 use EffectPHP\Schema\AST\AnyType;
-use EffectPHP\Schema\AST\ASTNodeInterface;
-use EffectPHP\Schema\AST\ASTVisitorInterface;
 use EffectPHP\Schema\AST\ArrayType;
 use EffectPHP\Schema\AST\BooleanType;
+use EffectPHP\Schema\AST\DateTimeType;
+use EffectPHP\Schema\AST\DateType;
 use EffectPHP\Schema\AST\EnumType;
 use EffectPHP\Schema\AST\LiteralType;
 use EffectPHP\Schema\AST\NonEmptyArrayType;
@@ -20,21 +18,26 @@ use EffectPHP\Schema\AST\StringType;
 use EffectPHP\Schema\AST\TransformationType;
 use EffectPHP\Schema\AST\TupleType;
 use EffectPHP\Schema\AST\UnionType;
+use EffectPHP\Schema\Contracts\ASTNodeInterface;
+use EffectPHP\Schema\Contracts\ASTVisitorInterface;
 
 final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterface
 {
-    public function getTarget(): string
-    {
+    public function getTarget(): string {
         return 'json-schema';
     }
 
-    protected function doCompile(ASTNodeInterface $ast): mixed
-    {
+    protected function doCompile(ASTNodeInterface $ast): mixed {
         return $ast->accept($this);
     }
 
-    public function visitStringType(StringType $node): array
-    {
+    public function visitTransformationType(TransformationType $node): array {
+        // For JSON Schema, we typically want the input format (from)
+        // since that's what external systems will send
+        return $this->compile($node->getFrom());
+    }
+
+    public function visitStringType(StringType $node): array {
         $schema = ['type' => 'string'];
 
         $annotations = $node->getAnnotations();
@@ -57,8 +60,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitNumberType(NumberType $node): array
-    {
+    public function visitNumberType(NumberType $node): array {
         $schema = ['type' => 'number'];
 
         $annotations = $node->getAnnotations();
@@ -75,8 +77,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitBooleanType(BooleanType $node): array
-    {
+    public function visitBooleanType(BooleanType $node): array {
         $schema = ['type' => 'boolean'];
 
         $annotations = $node->getAnnotations();
@@ -87,16 +88,14 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitLiteralType(LiteralType $node): array
-    {
+    public function visitLiteralType(LiteralType $node): array {
         return ['const' => $node->getValue()];
     }
 
-    public function visitArrayType(ArrayType $node): array
-    {
+    public function visitArrayType(ArrayType $node): array {
         $schema = [
             'type' => 'array',
-            'items' => $this->compile($node->getItemType())
+            'items' => $this->compile($node->getItemType()),
         ];
 
         $annotations = $node->getAnnotations();
@@ -113,8 +112,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitObjectType(ObjectType $node): array
-    {
+    public function visitObjectType(ObjectType $node): array {
         $schema = ['type' => 'object'];
 
         $properties = [];
@@ -141,8 +139,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitUnionType(UnionType $node): array
-    {
+    public function visitUnionType(UnionType $node): array {
         $oneOf = [];
         foreach ($node->getTypes() as $type) {
             $oneOf[] = $this->compile($type);
@@ -158,15 +155,14 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitRefinementType(RefinementType $node): array
-    {
+    public function visitRefinementType(RefinementType $node): array {
         // For JSON Schema, we compile the base type and add refinement info as description
         $baseSchema = $this->compile($node->getFrom());
 
         // Merge annotations from the refinement
         $annotations = $node->getAnnotations();
         $hasExplicitDescription = isset($annotations['description']);
-        
+
         foreach ($annotations as $key => $value) {
             $baseSchema[$key] = $value;
         }
@@ -184,18 +180,10 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $baseSchema;
     }
 
-    public function visitTransformationType(TransformationType $node): array
-    {
-        // For JSON Schema, we typically want the input format (from)
-        // since that's what external systems will send
-        return $this->compile($node->getFrom());
-    }
-
-    public function visitRecordType(RecordType $node): array
-    {
+    public function visitRecordType(RecordType $node): array {
         $schema = [
             'type' => 'object',
-            'additionalProperties' => $this->compile($node->getValueType())
+            'additionalProperties' => $this->compile($node->getValueType()),
         ];
 
         // Add key pattern constraint if key type has restrictions
@@ -204,7 +192,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
             $keyAnnotations = $keyType->getAnnotations();
             if (isset($keyAnnotations['pattern'])) {
                 $schema['patternProperties'] = [
-                    $keyAnnotations['pattern'] => $this->compile($node->getValueType())
+                    $keyAnnotations['pattern'] => $this->compile($node->getValueType()),
                 ];
                 unset($schema['additionalProperties']);
             }
@@ -218,8 +206,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitAnyType(AnyType $node): array
-    {
+    public function visitAnyType(AnyType $node): array {
         $schema = [];
 
         $annotations = $node->getAnnotations();
@@ -230,8 +217,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitTupleType(TupleType $node): array
-    {
+    public function visitTupleType(TupleType $node): array {
         $itemSchemas = [];
         foreach ($node->getElementTypes() as $elementType) {
             $itemSchemas[] = $this->compile($elementType);
@@ -242,7 +228,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
             'prefixItems' => $itemSchemas,
             'items' => false, // No additional items allowed
             'minItems' => count($itemSchemas),
-            'maxItems' => count($itemSchemas)
+            'maxItems' => count($itemSchemas),
         ];
 
         $annotations = $node->getAnnotations();
@@ -253,12 +239,11 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitNonEmptyArrayType(NonEmptyArrayType $node): array
-    {
+    public function visitNonEmptyArrayType(NonEmptyArrayType $node): array {
         $schema = [
             'type' => 'array',
             'items' => $this->compile($node->getItemType()),
-            'minItems' => 1
+            'minItems' => 1,
         ];
 
         $annotations = $node->getAnnotations();
@@ -269,8 +254,7 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
         return $schema;
     }
 
-    public function visitEnumType(EnumType $node): array
-    {
+    public function visitEnumType(EnumType $node): array {
         /** @var class-string $enumClass */
         $enumClass = $node->getEnumClass();
         $cases = $enumClass::cases();
@@ -288,6 +272,28 @@ final class JsonSchemaCompiler extends BaseCompiler implements ASTVisitorInterfa
             $schema['description'] = $annotations['description'];
         } else {
             $schema['description'] = "Enum: {$enumClass}";
+        }
+
+        return $schema;
+    }
+
+    public function visitDateTimeType(DateTimeType $param) {
+        $schema = ['type' => 'string', 'format' => 'date-time'];
+
+        $annotations = $param->getAnnotations();
+        if (isset($annotations['description'])) {
+            $schema['description'] = $annotations['description'];
+        }
+
+        return $schema;
+    }
+
+    public function visitDateType(DateType $param) {
+        $schema = ['type' => 'string', 'format' => 'date'];
+
+        $annotations = $param->getAnnotations();
+        if (isset($annotations['description'])) {
+            $schema['description'] = $annotations['description'];
         }
 
         return $schema;

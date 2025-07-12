@@ -1,13 +1,12 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\AST;
 
+use EffectPHP\Schema\Contracts\ASTVisitorInterface;
+
 final class BooleanType extends BaseASTNode
 {
-    public function accept(ASTVisitorInterface $visitor): mixed
-    {
+    public function accept(ASTVisitorInterface $visitor): mixed {
         return $visitor->visitBooleanType($this);
     }
 }

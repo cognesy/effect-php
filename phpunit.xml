@@ -11,14 +11,16 @@
         </testsuite>
         <testsuite name="Packages Tests">
             <directory suffix="Test.php">./packages/core/tests</directory>
-            <directory suffix="Test.php">./packages/schema/tests</directory>
+            <directory suffix="Test.php">./packages/utils/tests</directory>
+<!--            <directory suffix="Test.php">./packages/schema/tests</directory>-->
         </testsuite>
     </testsuites>
     <source>
         <include>
             <directory suffix=".php">./src</directory>
             <directory suffix=".php">./packages/core/tests</directory>
-            <directory suffix=".php">./packages/schema/tests</directory>
+            <directory suffix=".php">./packages/utils/tests</directory>
+<!--            <directory suffix=".php">./packages/schema/tests</directory>-->
         </include>
         <exclude>
             <directory suffix=".php">./src/Contracts</directory>

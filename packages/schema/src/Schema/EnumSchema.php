@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -13,7 +11,7 @@ use EffectPHP\Schema\Parse\TypeIssue;
 
 /**
  * Enum schema implementation using core Effects
- * 
+ *
  * @template T
  * @extends BaseSchema<T, mixed>
  */
@@ -22,8 +20,7 @@ final class EnumSchema extends BaseSchema
     private string $enumClass;
     private array $validValues;
 
-    public function __construct(string $enumClass, array $annotations = [])
-    {
+    public function __construct(string $enumClass, array $annotations = []) {
         if (!enum_exists($enumClass)) {
             throw new \InvalidArgumentException("Class {$enumClass} is not an enum");
         }
@@ -31,7 +28,7 @@ final class EnumSchema extends BaseSchema
         $this->enumClass = $enumClass;
         $this->validValues = array_map(
             fn($case) => $case->value ?? $case->name,
-            $enumClass::cases()
+            $enumClass::cases(),
         );
 
         parent::__construct(new EnumType($enumClass, $annotations));
@@ -41,8 +38,7 @@ final class EnumSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, mixed>
      */
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         // For backed enums, check the value
         if (method_exists($this->enumClass, 'tryFrom')) {
             try {
@@ -67,8 +63,8 @@ final class EnumSchema extends BaseSchema
                 $this->enumClass,
                 $input,
                 [],
-                "Expected one of: " . implode(', ', $this->validValues)
-            )
+                "Expected one of: " . implode(', ', $this->validValues),
+            ),
         ]));
     }
 
@@ -76,28 +72,26 @@ final class EnumSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, mixed>
      */
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         if (!$input instanceof $this->enumClass) {
             return Eff::fail(new ParseError([
-                new TypeIssue($this->enumClass, $input, [], 'Expected enum instance')
+                new TypeIssue($this->enumClass, $input, [], 'Expected enum instance'),
             ]));
         }
 
         // Return the value for backed enums, name for unit enums
         $result = isset($input->value) ? $input->value : $input->name;
-        
+
         return Eff::succeed($result);
     }
 
     /**
      * Override annotate to handle EnumSchema's specific constructor
      */
-    public function annotate(string $key, mixed $value): SchemaInterface
-    {
+    public function annotate(string $key, mixed $value): SchemaInterface {
         return new EnumSchema(
             $this->enumClass,
-            array_merge($this->ast->getAnnotations(), [$key => $value])
+            array_merge($this->ast->getAnnotations(), [$key => $value]),
         );
     }
 }

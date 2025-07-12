@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -12,7 +10,7 @@ use EffectPHP\Schema\Parse\TypeIssue;
 
 /**
  * Literal schema implementation using core Effects
- * 
+ *
  * @template T
  * @extends BaseSchema<T, mixed>
  */
@@ -20,8 +18,7 @@ final class LiteralSchema extends BaseSchema
 {
     private mixed $value;
 
-    public function __construct(mixed $value, array $annotations = [])
-    {
+    public function __construct(mixed $value, array $annotations = []) {
         $this->value = $value;
         parent::__construct(new LiteralType($value, $annotations));
     }
@@ -30,11 +27,10 @@ final class LiteralSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, mixed>
      */
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         if ($input !== $this->value) {
             return Eff::fail(new ParseError([
-                new TypeIssue($this->value, $input, [], "Expected literal value: " . json_encode($this->value))
+                new TypeIssue($this->value, $input, [], "Expected literal value: " . json_encode($this->value)),
             ]));
         }
 
@@ -45,11 +41,10 @@ final class LiteralSchema extends BaseSchema
      * @param mixed $input
      * @return Effect<never, \Throwable, mixed>
      */
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         if ($input !== $this->value) {
             return Eff::fail(new ParseError([
-                new TypeIssue($this->value, $input, [], "Expected literal value for encoding: " . json_encode($this->value))
+                new TypeIssue($this->value, $input, [], "Expected literal value for encoding: " . json_encode($this->value)),
             ]));
         }
 

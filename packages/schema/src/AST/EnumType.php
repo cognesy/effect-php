@@ -1,25 +1,23 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\AST;
+
+use EffectPHP\Schema\Contracts\ASTVisitorInterface;
 
 final class EnumType extends BaseASTNode
 {
     public function __construct(
         private readonly string $enumClass,
-        array $annotations = []
+        array $annotations = [],
     ) {
         parent::__construct($annotations);
     }
 
-    public function getEnumClass(): string
-    {
+    public function getEnumClass(): string {
         return $this->enumClass;
     }
 
-    public function accept(ASTVisitorInterface $visitor): mixed
-    {
+    public function accept(ASTVisitorInterface $visitor): mixed {
         return $visitor->visitEnumType($this);
     }
 }

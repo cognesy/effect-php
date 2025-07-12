@@ -1,10 +1,8 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 use EffectPHP\Core\Run;
-use EffectPHP\Schema\Schema;
 use EffectPHP\Schema\Compiler\JsonSchemaCompiler;
+use EffectPHP\Schema\Schema;
 use EffectPHP\Schema\Schema\CollectionSchema;
 
 // Test data classes

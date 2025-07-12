@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Schema\Schema;
 
@@ -23,30 +21,29 @@ final class RecordSchema extends BaseSchema
 
     public function __construct(
         SchemaInterface $keySchema,
-        SchemaInterface $valueSchema
+        SchemaInterface $valueSchema,
     ) {
         $this->keySchema = $keySchema;
         $this->valueSchema = $valueSchema;
-        
+
         parent::__construct(new RecordType(
             $keySchema->getAST(),
-            $valueSchema->getAST()
+            $valueSchema->getAST(),
         ));
     }
 
-    public function decode(mixed $input): Effect
-    {
+    public function decode(mixed $input): Effect {
         // Must be an array
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', gettype($input), [])
+                new TypeIssue('array', gettype($input), []),
             ]));
         }
 
         // Must be associative array (not sequential), but empty array is ok
         if (!empty($input) && array_is_list($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('associative array', 'sequential array', [])
+                new TypeIssue('associative array', 'sequential array', []),
             ]));
         }
 
@@ -69,7 +66,7 @@ final class RecordSchema extends BaseSchema
                 continue;
             }
 
-            $validatedPairs[$keyResult->getValueOrNull() ?? $key] = 
+            $validatedPairs[$keyResult->getValueOrNull() ?? $key] =
                 $valueResult->getValueOrNull() ?? $value;
         }
 
@@ -80,12 +77,11 @@ final class RecordSchema extends BaseSchema
         return Eff::succeed($validatedPairs);
     }
 
-    public function encode(mixed $input): Effect
-    {
+    public function encode(mixed $input): Effect {
         // Must be an array
         if (!is_array($input)) {
             return Eff::fail(new ParseError([
-                new TypeIssue('array', gettype($input), [])
+                new TypeIssue('array', gettype($input), []),
             ]));
         }
 
@@ -108,7 +104,7 @@ final class RecordSchema extends BaseSchema
                 continue;
             }
 
-            $encodedPairs[$keyResult->getValueOrNull() ?? $key] = 
+            $encodedPairs[$keyResult->getValueOrNull() ?? $key] =
                 $valueResult->getValueOrNull() ?? $value;
         }
 
@@ -119,8 +115,7 @@ final class RecordSchema extends BaseSchema
         return Eff::succeed($encodedPairs);
     }
 
-    public function annotate(string $key, mixed $value): SchemaInterface
-    {
+    public function annotate(string $key, mixed $value): SchemaInterface {
         $newRecordSchema = new self($this->keySchema, $this->valueSchema);
         $newRecordSchema->ast = $this->ast->withAnnotations([$key => $value]);
         return $newRecordSchema;

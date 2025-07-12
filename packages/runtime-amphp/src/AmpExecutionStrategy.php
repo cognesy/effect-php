@@ -12,7 +12,7 @@ use EffectPHP\Core\RuntimeV1\Strategies\Fiber;
 use EffectPHP\Core\RuntimeV1\Strategies\Promise;
 use EffectPHP\Core\RuntimeV1\Strategies\PromiseInterface;
 use EffectPHP\Core\RuntimeV1\Strategies\Runtime;
-use EffectPHP\Core\RuntimeV2\Contracts\ExecutionStrategy;
+use EffectPHP\RuntimeV2\Contracts\ExecutionStrategy;
 
 final class AmpExecutionStrategy implements ExecutionStrategy
 {
