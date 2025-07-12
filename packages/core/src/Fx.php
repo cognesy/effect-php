@@ -2,6 +2,7 @@
 
 namespace EffectPHP\Core;
 
+use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Effects\AsyncEffect;
 use EffectPHP\Core\Effects\FailEffect;
 use EffectPHP\Core\Effects\PureEffect;
@@ -71,5 +72,14 @@ final class Fx
 
     public static function state(): SuspendEffect {
         return new SuspendEffect(static fn(RuntimeState $s) => $s);
+    }
+
+    /**
+     * Retrieve the currently‑open Scope as an Effect.
+     */
+    public static function currentScope(): Effect {
+        return Fx::state()->map(
+            static fn(RuntimeState $state) => $state->scope,
+        );
     }
 }

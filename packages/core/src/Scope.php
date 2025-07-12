@@ -2,7 +2,6 @@
 
 namespace EffectPHP\Core;
 
-use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Utils\Exceptions\CompositeException;
 use SplStack;
 use Throwable;
@@ -38,10 +37,5 @@ final class Scope
         if (!empty($errors) && !$this->swallowErrors) {
             throw new CompositeException($errors);
         }
-    }
-
-    /** Retrieve the currently‑open Scope as an Effect. */
-    public static function current(): Effect {
-        return Fx::state()->map(static fn(RuntimeState $s) => $s->scope);
     }
 }

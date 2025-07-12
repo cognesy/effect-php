@@ -5,8 +5,8 @@ namespace EffectPHP\Core\Handlers;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Effects\ReserveEffect;
+use EffectPHP\Core\Fx;
 use EffectPHP\Core\RuntimeState;
-use EffectPHP\Core\Scope;
 
 final class ReserveHandler implements EffectHandler
 {
@@ -20,13 +20,9 @@ final class ReserveHandler implements EffectHandler
 
         return $state->withValue(
             $node->acquire->flatMap(
-                static function (mixed $resource) use ($release): Effect {
-                    return Scope::current()->map(
-                        static function (Scope $scope) use ($resource, $release) {
-                            $scope->add(fn() => ($release)($resource));
-                            return $resource;
-                        },
-                    );
+                static function (mixed $resource) use ($release, $state): Effect {
+                    $state->scope->add(fn() => ($release)($resource));
+                    return Fx::value($resource);
                 },
             ),
         );
