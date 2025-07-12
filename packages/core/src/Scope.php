@@ -1,8 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace EffectPHP\Core;
 
 use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Utils\Exceptions\CompositeException;
 use SplStack;
 use Throwable;
 
@@ -21,12 +22,18 @@ final class Scope
     }
 
     public function close(): void {
+        $errors = [];
         while (!$this->finalizers->isEmpty()) {
             try {
                 ($this->finalizers->pop())();
-            } catch (Throwable) {
-                /* swallow */
+            } catch (Throwable $e) {
+                // store errors but continue executing finalizers
+                $errors[] = $e;
             }
+        }
+
+        if (!empty($errors)) {
+            throw new CompositeException($errors);
         }
     }
 
