@@ -11,6 +11,7 @@ use EffectPHP\Core\Handlers\FailHandler;
 use EffectPHP\Core\Handlers\NoAsyncHandler;
 use EffectPHP\Core\Handlers\ProvideHandler;
 use EffectPHP\Core\Handlers\PureHandler;
+use EffectPHP\Core\Handlers\ReserveHandler;
 use EffectPHP\Core\Handlers\ServiceHandler;
 use EffectPHP\Core\Handlers\SleepHandler;
 use EffectPHP\Core\Handlers\SuspendHandler;
@@ -133,6 +134,7 @@ final class SyncRuntime implements Runtime
             new NoAsyncHandler(),
             new ProvideHandler(),
             new PureHandler(),
+            new ReserveHandler(),
             new ServiceHandler(),
             new SleepHandler(),
             new SuspendHandler(),

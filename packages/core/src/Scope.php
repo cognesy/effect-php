@@ -7,7 +7,9 @@ use EffectPHP\Utils\Exceptions\CompositeException;
 use SplStack;
 use Throwable;
 
-/** Simple LIFO stack of finalizers executed on close(). */
+/**
+ * Simple LIFO stack of finalizers executed on close().
+ */
 final class Scope
 {
     private bool $swallowErrors = true;
