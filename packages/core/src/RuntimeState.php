@@ -14,7 +14,11 @@ final readonly class RuntimeState
     ) {}
 
     public static function empty(): self {
-        return new self(Context::empty(), new ContinuationStack(), new Scope());
+        return new self(
+            context: Context::empty(),
+            stack: ContinuationStack::empty(),
+            scope: new Scope(),
+        );
     }
 
     public function with(

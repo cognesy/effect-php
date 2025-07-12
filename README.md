@@ -19,11 +19,11 @@ use EffectPHP\Core\Fx;
 use EffectPHP\Core\Runtimes\SyncRuntime;
 
 // Pure values
-$effect = Fx::succeed(42);
-$effect = Fx::unit(); // null
+$effect = Fx::value(42);
+$effect = Fx::null(); // null
 
 // Suspend computations
-$effect = Fx::suspend(fn() => expensive_operation());
+$effect = Fx::call(fn() => expensive_operation());
 
 // Async operations
 $effect = Fx::async(function($resolve) {
@@ -35,9 +35,9 @@ $effect = Fx::async(function($resolve) {
 $effect = Fx::service(DatabaseInterface::class);
 
 // Composition via map/flatMap
-$program = Fx::succeed(10)
+$program = Fx::value(10)
     ->map(fn($x) => $x * 2)
-    ->flatMap(fn($x) => Fx::succeed($x + 5));
+    ->flatMap(fn($x) => Fx::value($x + 5));
 ```
 
 ## Error Handling
@@ -58,7 +58,7 @@ try {
 }
 
 // Combinators for error recovery
-$safe = $effect->orElse(Fx::succeed("fallback"));
+$safe = $effect->orElse(Fx::value("fallback"));
 ```
 
 ## Dependency Injection with Layers
@@ -79,7 +79,7 @@ $appLayer = $dbLayer->dependsOn($logLayer);
 
 // Provide dependencies
 $program = Fx::service(DatabaseInterface::class)
-    ->flatMap(fn($db) => Fx::succeed($db->query("SELECT 1")))
+    ->flatMap(fn($db) => Fx::value($db->query("SELECT 1")))
     ->provide($appLayer);
 ```
 
@@ -89,13 +89,13 @@ $program = Fx::service(DatabaseInterface::class)
 use EffectPHP\Core\Managed;
 
 // Managed resources with automatic cleanup
-$managed = Managed::from(
+$managed = Managed::define(
     acquire: fn() => fopen("file.txt", "r"),
     release: fn($handle) => fclose($handle)
 );
 
 $program = $managed->reserve()
-    ->flatMap(fn($file) => Effect::succeed(fread($file, 1024)));
+    ->flatMap(fn($file) => Fx::value(fread($file, 1024)));
 
 // Resource automatically closed when scope ends
 ```

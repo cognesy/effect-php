@@ -2,51 +2,39 @@
 
 namespace EffectPHP\Utils;
 
-use IteratorAggregate;
-use SplStack;
-use Traversable;
-
 /**
- * Typed LIFO stack for continuation frames (callbacks, effects, etc.).
- *
- * • Built on SPL's doubly-linked list (`SplStack`) → O(1) push/pop, low memory.
- * • Immutable reference semantics – no need for &-by-ref parameters.
+ * LIFO stack for continuation frames (callbacks, effects, etc.).
  *
  * @template TFrame
- * @implements IteratorAggregate<TFrame>
  */
-final class ContinuationStack implements IteratorAggregate
+final class ContinuationStack
 {
-    /** @var SplStack<TFrame> */
-    private SplStack $frames;
+    private function __construct(
+        private mixed $head = null,
+        private ?self $tail = null,
+    ) {}
 
-    public function __construct() {
-        $this->frames = new SplStack();
+    public static function empty(): self {
+        return new self();
     }
 
-    /** @param TFrame $frame */
-    public function push(mixed $frame): void {
-        $this->frames->push($frame);
+    public function push(mixed $frame): self {
+        return new self($frame, $this);
     }
 
-    /** @return TFrame|null */
-    public function pop(): mixed {
-        return $this->frames->isEmpty() ? null : $this->frames->pop();
+    public function pop(): self {
+        return $this->isEmpty()
+            ? $this
+            : ($this->tail ?? self::empty());
     }
 
-    /** @return TFrame|null */
-    public function peek(): mixed {
-        return $this->frames->isEmpty() ? null : $this->frames->top();
+    public function current(): mixed {
+        return $this->isEmpty()
+            ? null
+            : $this->head;
     }
 
     public function isEmpty(): bool {
-        return $this->frames->isEmpty();
-    }
-
-    /** @return Traversable<TFrame> */
-    public function getIterator(): Traversable {
-        foreach ($this->frames as $frame) {
-            yield $frame;
-        }
+        return $this->head === null;
     }
 }

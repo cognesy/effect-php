@@ -2,8 +2,8 @@
 
 namespace EffectPHP\Core\Handlers;
 
-use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Effects\AsyncEffect;
 use EffectPHP\Core\RuntimeState;
 
@@ -18,6 +18,8 @@ final class NoAsyncHandler implements EffectHandler
         $asyncOperation = $node->asyncOperation;
 
         // Execute the operation synchronously and return its result
-        return $state->withValue($asyncOperation());
+        return $state->withValue(
+            $asyncOperation(),
+        );
     }
 }

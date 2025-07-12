@@ -52,7 +52,7 @@ test('Managed acquires resource and registers release with Scope', function () {
     $acquired = null;
     $released = null;
 
-    $managed = Managed::from(
+    $managed = Managed::define(
         acquire: function () use (&$acquired) {
             $acquired = 'resource';
             return $acquired;
@@ -71,8 +71,7 @@ test('Managed acquires resource and registers release with Scope', function () {
 
     $result = $this->runtime
         ->withContext($this->context)
-        ->run($effect)
-    ;
+        ->run($effect);
 
     expect($acquired)->toBe('resource');
     expect($result)->toBe('resource');
@@ -83,7 +82,7 @@ test('Managed acquires resource and registers release with Scope', function () {
 test('Managed handles acquisition failure', function () {
     $released = null;
 
-    $managed = Managed::from(
+    $managed = Managed::define(
         acquire: function () {
             throw new RuntimeException('Acquisition failed');
         },

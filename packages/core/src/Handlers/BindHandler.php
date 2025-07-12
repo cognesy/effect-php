@@ -2,8 +2,8 @@
 
 namespace EffectPHP\Core\Handlers;
 
-use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Effects\BindEffect;
 use EffectPHP\Core\RuntimeState;
 
@@ -28,12 +28,12 @@ final class BindHandler implements EffectHandler
         // Push the binder as a continuation to be executed
         // once the inner effect yields its result.
         /** @var BindEffect $node */
-        $stack->push($node->binder);
+        $newStack = $stack->push($node->binder);
 
         // Hand the inner effect back to the runtime so it
         // can be evaluated next.
         return $state->with(
-            stack: $stack,
+            stack: $newStack,
             value: $node->inner,
         );
     }

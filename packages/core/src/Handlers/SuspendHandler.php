@@ -15,6 +15,8 @@ final class SuspendHandler implements EffectHandler
 
     public function handle(Effect $node, RuntimeState $state): RuntimeState {
         /* @var SuspendEffect $node */
-        return $state->withValue(($node->computation)($state));
+        return $state->withValue(
+            ($node->computation)($state),
+        );
     }
 }

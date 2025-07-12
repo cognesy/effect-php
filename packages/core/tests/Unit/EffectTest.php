@@ -31,7 +31,7 @@ test('PureEffect returns its value', function () {
 });
 
 test('Unit effect returns null', function () {
-    $effect = Fx::unit();
+    $effect = Fx::null();
     expect($effect)->toBeInstanceOf(PureEffect::class);
     $result = $this->runtime->withContext($this->context)->run($effect);
     expect($result)->toBeNull();
@@ -60,7 +60,7 @@ test('ServiceEffect throws when service is missing', function () {
 });
 
 test('SuspendEffect executes its thunk', function () {
-    $effect = Fx::suspend(fn() => 123);
+    $effect = Fx::call(fn() => 123);
     expect($effect)->toBeInstanceOf(SuspendEffect::class);
     $result = $this->runtime->withContext($this->context)->run($effect);
     expect($result)->toBe(123);

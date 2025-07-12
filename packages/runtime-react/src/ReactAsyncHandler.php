@@ -1,10 +1,9 @@
 <?php declare(strict_types=1);
 
-use EffectPHP\Core\Context;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Effects\AsyncEffect;
-use React\Promise\PromiseInterface;
+use EffectPHP\Core\RuntimeState;
 
 final class ReactAsyncHandler implements EffectHandler
 {
@@ -12,7 +11,9 @@ final class ReactAsyncHandler implements EffectHandler
         return $node instanceof AsyncEffect;
     }
 
-    public function handle(Effect $node, callable $next, Context $ctx): PromiseInterface {
+    public function handle(Effect $node, RuntimeState $state): RuntimeState {
+        // TODO: actual async execution should happen here
+
         /* @var AsyncEffect $node */
         return ($node->asyncOperation)();
     }

@@ -15,6 +15,8 @@ final class PureHandler implements EffectHandler
 
     public function handle(Effect $node, RuntimeState $state): RuntimeState {
         /* @var PureEffect $node */
-        return $state->withValue($node->value);
+        return $state->withValue(
+            $node->value,
+        );
     }
 }

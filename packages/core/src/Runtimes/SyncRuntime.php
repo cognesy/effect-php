@@ -49,31 +49,30 @@ final class SyncRuntime implements Runtime
     /** Run an effect program to completion. */
     public function run(Effect $program): mixed {
         $context = $this->context ?? Context::empty();
-        $stack = new ContinuationStack();
-        $next = null;
 
         // Use scope from context if available, otherwise create new one
         $scope = $context->has(Scope::class) ? $context->get(Scope::class) : new Scope();
 
         $state = new RuntimeState(
             context: $context,
-            stack: $stack,
+            stack: ContinuationStack::empty(),
             scope: $scope,
-            value: $next,
         );
         $node = $program;
 
         try {
             while (true) {
-                $handler = $this->findHandler($node);
+                $newState = $this->executeNode($node, $state);
 
-                // execute handler and unpack state
-                $newState = $handler->handle($node, $state);
-                $context = $newState->context;
+                // unpack new state
                 $stack = $newState->stack;
-                $scope = $newState->scope;
                 $next = $newState->value;
-                $state = $state->with(context: $context, stack: $stack, scope: $scope, value: $next);
+                $state = $state->with(
+                    context: $newState->context,
+                    stack: $stack,
+                    scope: $newState->scope,
+                    value: $next,
+                );
 
                 // handler returned another EffectNode → keep looping
                 if ($next instanceof Effect) {
@@ -81,17 +80,19 @@ final class SyncRuntime implements Runtime
                     continue;
                 }
 
-                // otherwise we have a value; resume or finish
+                // otherwise we have a value = resume or finish
                 if ($stack->isEmpty()) {
                     // program complete - close scope and return result
-                    $scope->close();
+                    $state->scope->close();
                     return $next;
                 }
-                $node = ($stack->pop())($next);
+
+                $state = $state->with(stack: $stack->pop());
+                $node = ($stack->current())($next);
             }
         } catch (Throwable $e) {
             // close scope before re-throwing
-            $scope->close();
+            $state->scope->close();
             throw $e;
         }
     }
@@ -117,6 +118,11 @@ final class SyncRuntime implements Runtime
     }
 
     // INTERNAL ///////////////////////////////////////////////////////////
+
+    private function executeNode(Effect $node, RuntimeState $state): RuntimeState {
+        $handler = $this->findHandler($node);
+        return $handler->handle($node, $state);
+    }
 
     private function findHandler(Effect $node): EffectHandler {
         foreach ($this->handlers as $handler) {

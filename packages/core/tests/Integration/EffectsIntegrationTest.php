@@ -87,7 +87,7 @@ test('Scope and Managed handle resource acquisition and release', function () {
     };
 
     // Create a Managed resource
-    $managed = Managed::from($acquire, $release);
+    $managed = Managed::define($acquire, $release);
 
     // Create a program that uses the managed resource in a scope
     $program = $managed->reserve()->map(

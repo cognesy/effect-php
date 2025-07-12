@@ -23,14 +23,14 @@ final class ProvideHandler implements EffectHandler
         $childScope = new Scope();
 
         // When the inner effect completes, close the child scope.
-        $stack->push(static function (mixed $value) use ($childScope): PureEffect {
+        $newStack = $stack->push(static function (mixed $value) use ($childScope): PureEffect {
             $childScope->close();
             return new PureEffect($value);
         });
 
         return $state->with(
             context: $childContext,
-            stack: $stack,
+            stack: $newStack,
             scope: $childScope,
             value: $node->inner,
         );

@@ -37,7 +37,7 @@ final class Layer
     /**
      * Sequential composition – **this** builds first, **$other** builds second.
      */
-    public function usedBy(self $other): self {
+    public function referredBy(self $other): self {
         return new self(function (Context $ctx) use ($other) {
             return $other->applyTo($this->applyTo($ctx));
         });

@@ -2,7 +2,6 @@
 
 namespace EffectPHP\Core;
 
-use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Effects\AsyncEffect;
 use EffectPHP\Core\Effects\FailEffect;
 use EffectPHP\Core\Effects\PureEffect;
@@ -18,31 +17,13 @@ final class Fx
 {
     private function __construct() {}
 
-    /** @return PureEffect<null> */
-    public static function unit(): PureEffect {
-        return new PureEffect(null);
-    }
-
-    public static function null(): PureEffect {
-        return self::unit();
-    }
-
     /**
      * @template T
      * @param T $value
      * @return PureEffect<T>
      */
     public static function succeed(mixed $value): PureEffect {
-        return new PureEffect($value);
-    }
-
-    /**
-     * @template T
-     * @param T $value
-     * @return PureEffect<T>
-     */
-    public static function value(mixed $value): PureEffect {
-        return self::succeed($value);
+        return self::value($value);
     }
 
     public static function fail(Throwable $e): FailEffect {
@@ -51,10 +32,26 @@ final class Fx
 
     /**
      * @template T
+     * @param T $value
+     * @return PureEffect<T>
+     */
+    public static function value(mixed $value): PureEffect {
+        return new PureEffect($value);
+    }
+
+    /**
+     * @return PureEffect<null>
+     */
+    public static function null(): PureEffect {
+        return new PureEffect(null);
+    }
+
+    /**
+     * @template T
      * @param callable():T $thunk
      * @return SuspendEffect<T>
      */
-    public static function suspend(callable $thunk): SuspendEffect {
+    public static function call(callable $thunk): SuspendEffect {
         return new SuspendEffect($thunk);
     }
 
@@ -68,18 +65,5 @@ final class Fx
 
     public static function async(callable $asyncOperation): AsyncEffect {
         return new AsyncEffect(\Closure::fromCallable($asyncOperation));
-    }
-
-    public static function state(): SuspendEffect {
-        return new SuspendEffect(static fn(RuntimeState $s) => $s);
-    }
-
-    /**
-     * Retrieve the currently‑open Scope as an Effect.
-     */
-    public static function currentScope(): Effect {
-        return Fx::state()->map(
-            static fn(RuntimeState $state) => $state->scope,
-        );
     }
 }

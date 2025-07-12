@@ -13,18 +13,22 @@ final class Context
         $this->services = $services;
     }
 
-    public static function empty() {
+    public static function empty(): self {
         return new self();
     }
 
-    /** Return **new** context with service added/replaced. */
+    /**
+     * Return **new** context with service added/replaced.
+     */
     public function with(string $class, object $service): self {
         $copy = clone $this;
         $copy->services[$class] = $service;
         return $copy;
     }
 
-    /** Get a service or throw. */
+    /**
+     * Get a service or throw.
+     */
     public function get(string $class): object {
         if (!array_key_exists($class, $this->services)) {
             throw new RuntimeException("Service {$class} not provided");
@@ -36,7 +40,9 @@ final class Context
         return array_key_exists($class, $this->services);
     }
 
-    /** Merge two contexts – **right‑bias** overrides duplicates. */
+    /**
+     * Merge two contexts – **right‑bias** overrides duplicates.
+     */
     public function merge(self $other): self {
         return new self([...$this->services, ...$other->services]);
     }

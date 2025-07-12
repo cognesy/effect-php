@@ -26,9 +26,9 @@ final class Managed
      * @param callable():Effect $acquire Effect that acquires the resource.
      * @param callable(mixed):void $release Function to release the resource.
      */
-    public static function from(callable $acquire, callable $release): self {
+    public static function define(callable $acquire, callable $release): self {
         return new self(
-            Fx::suspend($acquire),
+            Fx::call($acquire),
             Closure::fromCallable($release),
         );
     }

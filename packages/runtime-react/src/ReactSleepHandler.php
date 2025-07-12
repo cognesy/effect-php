@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace EffectPHP\Runtime\React;
+namespace EffectPHP\React;
 
 use EffectPHP\Core\Context;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Effects\SleepEffect;
-use EffectPHP\Utils\ContinuationStack;
+use EffectPHP\Core\RuntimeState;
 use React\EventLoop\Loop;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
@@ -36,7 +36,7 @@ final class ReactSleepHandler implements EffectHandler
      * @param Context $ctx The current execution context.
      * @return PromiseInterface<null> A promise that resolves with null after the specified duration.
      */
-    public function handle(Effect $node, ContinuationStack $stack, Context $ctx): PromiseInterface {
+    public function handle(Effect $node, RuntimeState $state): RuntimeState {
         /** @var SleepEffect $node */
         $deferred = new Deferred();
 

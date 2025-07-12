@@ -1,47 +1,55 @@
 {
-    "name": "effect-php/effect-php",
-    "description": "Functional effect system based on Effect TS concepts - PHP8 port with stack-safe execution",
-    "type": "library",
-    "license": "MIT",
-    "keywords": ["effect", "monad", "functional", "async", "error-handling"],
-    "autoload": {
-        "psr-4": {
-            "EffectPHP\\Core\\": "packages/core/src/",
-            "EffectPHP\\Schema\\": "packages/schema/src/",
-            "EffectPHP\\Utils\\": "packages/utils/src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "EffectPHP\\Core\\Tests\\": "tests/",
-            "EffectPHP\\Schema\\Tests\\": "packages/schema/tests/",
-            "EffectPHP\\Utils\\Tests\\": "packages/utils/tests/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Dariusz Debowczyk",
-            "email": "ddebowczyk@gmail.com"
-        }
-    ],
-    "require": {
-        "php": ">=8.2",
-        "react/promise": "^3.2"
-    },
-    "require-dev": {
-        "pestphp/pest": "^2.0",
-        "phpunit/phpunit": "^10.0",
-        "symfony/var-dumper": "^7.3"
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true,
-    "scripts": {
-        "test": "pest"
+  "name": "effect-php/effect-php",
+  "description": "Functional effect system based on Effect TS concepts - PHP8 port with stack-safe execution",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "effect",
+    "monad",
+    "functional",
+    "async",
+    "error-handling"
+  ],
+  "autoload": {
+    "psr-4": {
+      "EffectPHP\\Core\\": "packages/core/src/",
+      "EffectPHP\\Schema\\": "packages/schema/src/",
+      "EffectPHP\\Utils\\": "packages/utils/src/",
+      "EffectPHP\\React\\": "packages/runtime-react/src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "EffectPHP\\Core\\Tests\\": "tests/",
+      "EffectPHP\\Schema\\Tests\\": "packages/schema/tests/",
+      "EffectPHP\\Utils\\Tests\\": "packages/utils/tests/",
+      "EffectPHP\\React\\Tests\\": "packages/runtime-react/tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Dariusz Debowczyk",
+      "email": "ddebowczyk@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "react/promise": "^3.2"
+  },
+  "require-dev": {
+    "pestphp/pest": "^2.0",
+    "phpunit/phpunit": "^10.0",
+    "symfony/var-dumper": "^7.3"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "scripts": {
+    "test": "pest"
+  }
 }
