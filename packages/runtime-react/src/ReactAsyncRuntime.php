@@ -3,8 +3,8 @@
 namespace EffectPHP\Runtime\React;
 
 use EffectPHP\Core\Context;
-use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Effects\BindEffect;
 use EffectPHP\Core\Effects\ProvideEffect;
@@ -16,35 +16,24 @@ use EffectPHP\Core\Handlers\SuspendHandler;
 use EffectPHP\Utils\Clock\Clock;
 use EffectPHP\Utils\Clock\SystemClock;
 use EffectPHP\Utils\ContinuationStack;
+use EffectPHP\Utils\Result\Result;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
+use ReactAsyncHandler;
 
 final class ReactAsyncRuntime implements Runtime
 {
     /** @var list<EffectHandler> */
     private array $handlers;
 
-    public function __construct(EffectHandler ...$handlers)
-    {
+    public function __construct(EffectHandler ...$handlers) {
         $this->handlers = $handlers === []
             ? self::defaultHandlers()
             : $handlers;
     }
 
-    private static function defaultHandlers(): array {
-        return [
-            new FailHandler(),
-            new PureHandler(),
-            new ServiceHandler(),
-            new SuspendHandler(),
-            new ReactSleepHandler(),
-            new ReactAsyncHandler(),
-        ];
-    }
-
     // The run method no longer interacts with the loop directly.
-    public function run(Effect $program, ?Context $ctx = null): PromiseInterface
-    {
+    public function run(Effect $program, ?Context $ctx = null): PromiseInterface {
         $ctx ??= new Context();
         if (!$ctx->has(Clock::class)) {
             $ctx = $ctx->with(Clock::class, new SystemClock());
@@ -59,7 +48,7 @@ final class ReactAsyncRuntime implements Runtime
     private function execute(Effect $node, Context $ctx, ContinuationStack $cont, Deferred $deferred): void {
         if ($node instanceof ProvideEffect) {
             $prevCtx = $ctx;
-            $ctx = $node->layer->apply($ctx);
+            $ctx = $node->layer->applyTo($ctx);
             $newNode = new BindEffect(
                 $node->inner,
                 function (mixed $val) use (&$ctx, $prevCtx): Effect {
@@ -132,5 +121,34 @@ final class ReactAsyncRuntime implements Runtime
             );
         }
         return $deferred->promise();
+    }
+
+    public function withHandlers(EffectHandler ...$handlers): Runtime {
+        // TODO: Implement withHandlers() method.
+    }
+
+    public function withContext(Context $context): Runtime {
+        // TODO: Implement withContext() method.
+    }
+
+    public function tryRun(Effect $program): Result {
+        // TODO: Implement tryRun() method.
+    }
+
+    public function tryRunAll(Effect ...$programs): Result {
+        // TODO: Implement tryRunAll() method.
+    }
+
+    // INTERNAL ///////////////////////////////////////////////////////////
+
+    private static function defaultHandlers(): array {
+        return [
+            new FailHandler(),
+            new PureHandler(),
+            new ServiceHandler(),
+            new SuspendHandler(),
+            new ReactSleepHandler(),
+            new ReactAsyncHandler(),
+        ];
     }
 }

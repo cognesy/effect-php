@@ -2,8 +2,8 @@
 
 namespace EffectPHP\Core\Handlers;
 
-use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Contracts\Effect;
+use EffectPHP\Core\Contracts\EffectHandler;
 use EffectPHP\Core\Effects\ProvideEffect;
 use EffectPHP\Core\Effects\PureEffect;
 use EffectPHP\Core\RuntimeState;
@@ -18,7 +18,7 @@ final class ProvideHandler implements EffectHandler
     public function handle(Effect $node, RuntimeState $state): RuntimeState {
         /* @var ProvideEffect $node */
         $parentContext = $state->context;
-        $childContext = $node->layer->apply($parentContext);
+        $childContext = $node->layer->applyTo($parentContext);
         $stack = $state->stack;
         $childScope = new Scope();
 

@@ -21,7 +21,7 @@ test('Effect facade with SyncRuntime handles Pure, Service, and Sleep effects', 
             return 'Hello, World!';
         }
     };
-    $layer = Layer::succeed('Greeter', $service);
+    $layer = Layer::provides('Greeter', $service);
 
     // Create an effect program combining Pure, Service, and Sleep
     $program = Fx::value(42)
@@ -59,9 +59,9 @@ test('Layer and Context composition with service dependencies', function () {
     };
 
     // Create layers for both services
-    $layerA = Layer::succeed('ServiceA', $serviceA);
-    $layerB = Layer::succeed('ServiceB', $serviceB);
-    $composedLayer = $layerA->compose($layerB);
+    $layerA = Layer::provides('ServiceA', $serviceA);
+    $layerB = Layer::provides('ServiceB', $serviceB);
+    $composedLayer = $layerB->dependsOn($layerA);
 
     // Create an effect program using the services
     $program = Fx::service('ServiceB')->map(fn($s) => $s->compute());
@@ -108,7 +108,7 @@ test('Error handling with FailEffect and layered context', function () {
         ->then(Fx::value('unreachable'));
 
     // Create a layer with a service
-    $layer = Layer::succeed('DummyService', new class {
+    $layer = Layer::provides('DummyService', new class {
         public function dummy(): string {
             return 'dummy';
         }

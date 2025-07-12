@@ -96,7 +96,7 @@ test('BindEffect chains computations', function () {
 
 test('ProvideEffect applies layer and restores context', function () {
     $service = new stdClass();
-    $layer = Layer::succeed('TestService', $service);
+    $layer = Layer::provides('TestService', $service);
     $effect = Fx::service('TestService')->provide($layer);
     expect($effect)->toBeInstanceOf(ProvideEffect::class);
     $result = $this->runtime->withContext($this->context)->run($effect);

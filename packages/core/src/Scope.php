@@ -10,6 +10,7 @@ use Throwable;
 /** Simple LIFO stack of finalizers executed on close(). */
 final class Scope
 {
+    private bool $swallowErrors = true;
     /** @var SplStack<callable():void> */
     private SplStack $finalizers;
 
@@ -32,7 +33,7 @@ final class Scope
             }
         }
 
-        if (!empty($errors)) {
+        if (!empty($errors) && !$this->swallowErrors) {
             throw new CompositeException($errors);
         }
     }

@@ -69,13 +69,13 @@ use EffectPHP\Core\Layer;
 use EffectPHP\Core\Context;
 
 // Define services
-$dbLayer = Layer::succeed(DatabaseInterface::class, new PDODatabase());
-$logLayer = Layer::of(LoggerInterface::class, 
+$dbLayer = Layer::provides(DatabaseInterface::class, new PDODatabase());
+$logLayer = Layer::providesFrom(LoggerInterface::class, 
     fn($ctx) => new Logger($ctx->get(ConfigInterface::class))
 );
 
 // Compose layers
-$appLayer = $dbLayer->compose($logLayer);
+$appLayer = $dbLayer->dependsOn($logLayer);
 
 // Provide dependencies
 $program = Fx::service(DatabaseInterface::class)
