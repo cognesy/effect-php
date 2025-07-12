@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use EffectPHP\Core\Context;
+use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Effects\AsyncEffect;
 use EffectPHP\Core\Effects\BindEffect;
 use EffectPHP\Core\Effects\FailEffect;
@@ -55,8 +56,7 @@ test('ServiceEffect retrieves service from context', function () {
 test('ServiceEffect throws when service is missing', function () {
     $effect = Fx::service('MissingService');
     expect(fn() => $this->runtime->withContext($this->context)->run($effect))
-        ->toThrow(RuntimeException::class, 'Service MissingService not provided')
-    ;
+        ->toThrow(RuntimeException::class, 'Service MissingService not provided');
 });
 
 test('SuspendEffect executes its thunk', function () {
@@ -117,7 +117,7 @@ test('Then combinator chains effects', function () {
 });
 
 test('No handler throws RuntimeException', function () {
-    $badEffect = new class implements EffectPHP\Core\Contracts\Effect {
+    $badEffect = new class implements Effect {
         use EffectPHP\Core\Traits\Combinators;
     };
     $runtime = $this->runtime->withContext($this->context);

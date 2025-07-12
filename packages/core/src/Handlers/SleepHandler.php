@@ -21,7 +21,7 @@ final class SleepHandler implements EffectHandler
         /** @var Clock $clock */
         $clock = $context->get(Clock::class);
         /** @var SleepEffect $node */
-        $clock->sleep(Duration::milliseconds($node->millis));
+        $clock->sleep(Duration::milliseconds($node->milliseconds));
 
         return $state->withValue(null);
     }

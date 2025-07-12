@@ -2,13 +2,15 @@
 
 namespace EffectPHP\Core\Effects;
 
+use Closure;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Traits\Combinators;
-use Closure;
 
 final class AsyncEffect implements Effect
 {
     use Combinators;
 
-    public function __construct(public readonly Closure $asyncOperation) {}
+    public function __construct(
+        public readonly Closure $asyncOperation,
+    ) {}
 }

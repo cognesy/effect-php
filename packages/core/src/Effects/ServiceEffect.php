@@ -9,5 +9,7 @@ final class ServiceEffect implements Effect
 {
     use Combinators;
 
-    public function __construct(public readonly string $serviceClass) {}
+    public function __construct(
+        public readonly string $serviceClass,
+    ) {}
 }

@@ -6,10 +6,11 @@ use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Traits\Combinators;
 use Throwable;
 
-/** @template T */
 final class FailEffect implements Effect
 {
     use Combinators;
 
-    public function __construct(public readonly Throwable $error) {}
+    public function __construct(
+        public readonly Throwable $error,
+    ) {}
 }

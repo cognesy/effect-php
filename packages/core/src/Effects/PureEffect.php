@@ -10,5 +10,7 @@ final class PureEffect implements Effect
 {
     use Combinators;
 
-    public function __construct(public readonly mixed $value) {}
+    public function __construct(
+        public readonly mixed $value,
+    ) {}
 }

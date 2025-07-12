@@ -9,5 +9,7 @@ final class SleepEffect implements Effect
 {
     use Combinators;
 
-    public function __construct(public readonly int $millis) {}
+    public function __construct(
+        public readonly int $milliseconds,
+    ) {}
 }

@@ -7,8 +7,12 @@ use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Traits\Combinators;
 
 /** @template T */
-final class SuspendEffect implements Effect {
+final class SuspendEffect implements Effect
+{
     use Combinators;
-    /** @param callable():T $thunk */
-    public function __construct(public readonly Closure $thunk) {}
+
+    /** @param callable():T $computation */
+    public function __construct(
+        public readonly Closure $computation,
+    ) {}
 }

@@ -5,6 +5,7 @@ namespace EffectPHP\Core\Runtimes;
 use EffectPHP\Core\Context;
 use EffectPHP\Core\Contracts\Effect;
 use EffectPHP\Core\Contracts\EffectHandler;
+use EffectPHP\Core\Contracts\Runtime;
 use EffectPHP\Core\Handlers\BindHandler;
 use EffectPHP\Core\Handlers\FailHandler;
 use EffectPHP\Core\Handlers\NoAsyncHandler;
@@ -20,7 +21,7 @@ use EffectPHP\Utils\Result\Result;
 use RuntimeException;
 use Throwable;
 
-final class SyncRuntime
+final class SyncRuntime implements Runtime
 {
     /** @var EffectHandler[] */
     private readonly array $handlers;
@@ -36,7 +37,7 @@ final class SyncRuntime
         $this->context = $context ?? Context::empty();
     }
 
-    public function withHandlers(array $handlers): self {
+    public function withHandlers(EffectHandler ...$handlers): self {
         return new self($handlers, $this->context);
     }
 
@@ -100,7 +101,7 @@ final class SyncRuntime
         });
     }
 
-    public function runAll(Effect ...$programs): mixed {
+    public function runAll(Effect ...$programs): array {
         $results = [];
         foreach ($programs as $program) {
             $results[] = $this->run($program);
@@ -113,6 +114,8 @@ final class SyncRuntime
             return $this->runAll(...$programs);
         });
     }
+
+    // INTERNAL ///////////////////////////////////////////////////////////
 
     private function findHandler(Effect $node): EffectHandler {
         foreach ($this->handlers as $handler) {
